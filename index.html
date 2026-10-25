@@ -1,0 +1,1271 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="PetroFleet Sudan – نموذج تفاعلي لإدارة الوقود: تطبيق السائق، مدير الأسطول، عامل المحطة، ولوحة تحكم الويب.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Petro App Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* PetroFleet Mobility, bright edition. Single light look by design: airy blue-grey canvas, white cards,
+   multi-colour accents (emerald = driver/primary, blue = fleet, orange = station, violet/cyan = data).
+   Layout: top bar; app mode = phone on canvas with notes; web mode = sidebar admin console. RTL-first. */
+:root{
+  color-scheme:light;
+  --canvas:#EEF3F9; --s1:#FFFFFF; --s2:#F2F5FA; --stroke:#D8E0EC;
+  --ink:#273449; --white:#0B1526; --muted:#5D6B80; --faint:#8C99AC;
+  --em:#00A86B; --em-d:#007F51; --em-ink:#FFFFFF; --em-soft:#DDF7EC; --em-press:#00925D;
+  --bl:#2F6BFF; --bl-d:#1F4FD1; --bl-soft:#E4ECFF;
+  --or:#F97316; --or-d:#C2550B; --or-soft:#FFEEDB;
+  --vi:#7C5CFF; --vi-d:#5B3DE0; --vi-soft:#EEEAFF;
+  --cy:#0891B2; --cy-soft:#DDF4FA;
+  --am:#B86E00; --am-f:#F59E0B; --am-soft:#FEF2D6;
+  --rd:#D92D20; --rd-soft:#FDE6E4;
+  --g91:#15803D; --g91-bg:#DCFCE7; --g95:#B42318; --g95-bg:#FEE4E2; --gdz:#9A6700; --gdz-bg:#FEF3C7;
+  --head:"Space Grotesk","IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;
+  --body:"Inter","IBM Plex Sans Arabic","Segoe UI",Tahoma,system-ui,sans-serif;
+  --mono:"JetBrains Mono","IBM Plex Sans Arabic",ui-monospace,Menlo,monospace;
+  --r-sm:8px; --r-lg:16px; --r-xl:24px;
+  --rc:var(--em); --rc-d:var(--em-d); --rc-soft:var(--em-soft);
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--canvas);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 28px}
+[lang="ar"] body{font-family:"IBM Plex Sans Arabic","Inter",Tahoma,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select{font:inherit;color:var(--white)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--bl);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.cap{font-size:.62em;font-weight:700;color:var(--muted);letter-spacing:.04em;margin-inline-start:4px;font-family:var(--body)}
+.lbl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+[lang="ar"] .lbl{letter-spacing:0;font-size:12px}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+h1,h2,h3{font-family:var(--head)}
+[data-r="fleet"]{--rc:var(--bl);--rc-d:var(--bl-d);--rc-soft:var(--bl-soft)}
+[data-r="station"]{--rc:var(--or);--rc-d:var(--or-d);--rc-soft:var(--or-soft)}
+.topbar{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:14px}
+.brand{font-family:var(--head);font-weight:700;font-size:20px;display:flex;align-items:center;gap:10px;margin-inline-end:auto;color:var(--white)}
+.mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--em),var(--cy));display:grid;place-items:center;color:#fff}
+.seg{display:flex;background:var(--s1);border:1px solid var(--stroke);border-radius:999px;padding:3px;gap:2px}
+.seg button{padding:8px 14px;border-radius:999px;font-weight:600;font-size:13px;color:var(--muted);white-space:nowrap;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--white);color:#fff;font-weight:700}
+.roles button[data-role="driver"][aria-pressed="true"]{background:var(--em)}
+.roles button[data-role="fleet"][aria-pressed="true"]{background:var(--bl)}
+.roles button[data-role="station"][aria-pressed="true"]{background:var(--or)}
+.lang{padding:8px 14px;border-radius:999px;border:1px solid var(--stroke);background:var(--s1);font-weight:700;font-size:13px;color:var(--white);min-height:36px}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--em-d);font-weight:600}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.pulse{box-shadow:0 0 0 0 rgba(0,168,107,.5);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 7px rgba(0,168,107,0)}100%{box-shadow:0 0 0 0 rgba(0,168,107,0)}}
+@media (max-width:640px){.brand{width:100%}}
+.wrap{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 400px minmax(0,1fr);gap:28px;align-items:start}
+.notes{padding-top:56px;min-width:0}
+.notes h1{font-weight:700;font-size:32px;line-height:1.15;margin:0 0 12px;color:var(--white);text-wrap:balance}
+.notes p{color:var(--muted);line-height:1.65;margin:0 0 14px;max-width:36ch}
+.notes .lbl{display:block;margin-bottom:12px;color:var(--em-d)}
+.swatches{display:flex;gap:6px;margin-top:6px}.swatches i{width:22px;height:8px;border-radius:4px}
+.center{display:flex;flex-direction:column;gap:14px;align-items:center;min-width:0}
+.side{padding-top:56px;min-width:0}
+.side h3{font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600}
+.side ol{margin:0;padding-inline-start:18px;color:var(--muted);line-height:1.7}
+.side li b{color:var(--white);font-weight:600}
+@media (max-width:1000px){.wrap{grid-template-columns:minmax(0,1fr)}.notes,.side{padding-top:0;max-width:400px;margin:0 auto;width:100%}.center{order:1}.side{order:2}}
+.roles{width:100%;max-width:400px}.roles button{flex:1}
+.phone{width:100%;max-width:400px;height:min(820px,calc(100vh - 140px));min-height:620px;background:var(--canvas);border:1px solid var(--stroke);
+  border-radius:36px;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 30px 60px -30px rgba(31,79,209,.35),0 0 0 6px #fff}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 16px 20px;scrollbar-width:none}
+.appbar{display:flex;align-items:center;gap:10px;padding:16px 0 12px;position:sticky;top:0;background:var(--canvas);z-index:2}
+.appbar .ttl{flex:1;min-width:0}
+.appbar .ttl small{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--rc-d)}
+.appbar .ttl b{display:block;font-family:var(--head);font-size:20px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{width:44px;height:44px;border-radius:12px;background:var(--s1);border:1px solid var(--stroke);display:grid;place-items:center;color:var(--ink);position:relative;flex-shrink:0}
+.iconbtn .badge-dot{position:absolute;top:9px;inset-inline-end:10px;width:8px;height:8px;border-radius:50%;background:var(--or)}
+.ava{width:44px;height:44px;border-radius:50%;background:var(--rc);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0}
+.ava.sm{width:36px;height:36px;font-size:12px}
+.dock{display:flex;align-items:flex-end;background:var(--s1);border-top:1px solid var(--stroke);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:8px 6px 12px}
+.dock button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;font-size:11px;font-weight:600;color:var(--muted);min-height:48px}
+.dock button svg{width:22px;height:22px}
+.dock button[aria-current="true"]{color:var(--rc-d)}
+.dock .qr{flex:0 0 72px}
+.dock .qr span.c{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--em),var(--cy));color:#fff;display:grid;place-items:center;margin-top:-28px;box-shadow:0 0 0 6px var(--canvas),0 8px 20px rgba(0,168,107,.35)}
+.dock .qr span.c svg{width:26px;height:26px}
+.card{background:var(--s1);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:16px}
+.card+.card,.card+.sec,.sec+.card,.sec+.sec,.stack>*+*{margin-top:12px}
+.g2>*,.g3>*,.wk>*,.grid2>*,.main>*,.row>*{margin-top:0!important}
+.inset,.deep{background:var(--s2);border:1px solid var(--stroke);border-radius:12px;padding:12px}
+.hero{border:0;color:#fff;background:linear-gradient(135deg,var(--h1),var(--h2))}
+.h-em{--h1:#00A86B;--h2:#0891B2} .h-bl{--h1:#2F6BFF;--h2:#7C5CFF} .h-or{--h1:#F97316;--h2:#E8436E} .h-vi{--h1:#7C5CFF;--h2:#2F6BFF}
+.hero .lbl,.hero .muted,.hero .cap{color:rgba(255,255,255,.85)}
+.hero .w,.hero b,.hero h2,.hero h3,.hero .em,.hero .big{color:#fff}
+.hero .pill{background:rgba(255,255,255,.2);color:#fff}
+.hero .quota{background:rgba(255,255,255,.3)} .hero .quota i{background:#fff}
+.hero .deep,.hero .inset{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.28)}
+.hero .btn-s{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35);color:#fff}
+.hero .btn-p{background:#fff;color:var(--white)}
+.hero .ico{background:rgba(255,255,255,.2);color:#fff}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.ch h3{margin:0;font-size:18px;font-weight:600;color:var(--white);display:flex;align-items:center;gap:8px}
+.sec{margin-top:18px}
+.sec>.lbl{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sec>.lbl button{color:var(--bl-d);font-weight:700}
+.btn-p{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;background:var(--em);color:var(--em-ink);font-weight:700;font-size:16px;border-radius:var(--r-sm);padding:0 16px}
+.btn-p:active{background:var(--em-press)}
+.btn-p:disabled{opacity:.4;cursor:not-allowed}
+.btn-s{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;background:var(--s1);border:1px solid var(--stroke);color:var(--white);font-weight:600;border-radius:var(--r-sm);padding:0 14px}
+.btn-c{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;background:var(--rd-soft);border:1px solid rgba(217,45,32,.35);color:var(--rd);font-weight:700;border-radius:var(--r-sm);padding:0 14px}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:var(--r-sm);font-weight:700;font-size:13px;background:var(--s1);border:1px solid var(--stroke);color:var(--white);white-space:nowrap}
+.btn-sm.p{background:var(--em);border-color:var(--em);color:#fff}
+.btn-sm.b{background:var(--bl-soft);border-color:transparent;color:var(--bl-d)}
+.link{color:var(--bl-d);font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:4px}
+.row{display:flex;gap:8px} .row>*{flex:1;min-width:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap;background:var(--s2);color:var(--muted)}
+.pill.em{background:var(--em-soft);color:var(--em-d)} .pill.am{background:var(--am-soft);color:var(--am)} .pill.rd{background:var(--rd-soft);color:var(--rd)} .pill.cy{background:var(--cy-soft);color:var(--cy)} .pill.bl{background:var(--bl-soft);color:var(--bl-d)} .pill.vi{background:var(--vi-soft);color:var(--vi-d)} .pill.or{background:var(--or-soft);color:var(--or-d)}
+.fg{font-weight:700;font-size:11px;padding:4px 9px;border-radius:999px;white-space:nowrap;display:inline-block}
+.fg91{color:var(--g91);background:var(--g91-bg)} .fg95{color:var(--g95);background:var(--g95-bg)} .fgdz{color:var(--gdz);background:var(--gdz-bg)}
+.plate{display:inline-flex;align-items:stretch;border:1.5px solid var(--white);background:#fff;border-radius:6px;overflow:hidden;font-family:var(--mono);font-weight:700;font-size:12px;direction:ltr;vertical-align:middle;color:var(--white);line-height:1.2}
+.plate span{padding:3px 7px;display:flex;flex-direction:column;justify-content:center}
+.plate span+span{border-left:1.5px solid var(--white);font-family:"IBM Plex Sans Arabic",var(--mono)}
+.quota{height:6px;background:var(--s2);border-radius:6px;overflow:hidden;margin-top:8px}
+.quota i{display:block;height:100%;border-radius:6px;background:var(--em)}
+.quota i.am{background:var(--am-f)} .quota i.rd{background:var(--rd)}
+.big{font-family:var(--mono);font-weight:700;font-size:32px;color:var(--white);line-height:1.1;margin:6px 0}
+.li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--s2);min-width:0}
+.li:last-child{border-bottom:0;padding-bottom:0}.li:first-child{padding-top:0}
+.li .t{flex:1;min-width:0}
+.li .t b{display:block;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .t span{color:var(--muted);font-size:12px}
+.li .r{text-align:end;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.ico{width:40px;height:40px;border-radius:12px;background:var(--em-soft);display:grid;place-items:center;flex-shrink:0;color:var(--em-d)}
+.ico.am{color:var(--am);background:var(--am-soft)} .ico.rd{color:var(--rd);background:var(--rd-soft)} .ico.cy{color:var(--cy);background:var(--cy-soft)} .ico.bl{color:var(--bl-d);background:var(--bl-soft)} .ico.or{color:var(--or-d);background:var(--or-soft)} .ico.vi{color:var(--vi-d);background:var(--vi-soft)}
+.muted{color:var(--muted)} .em{color:var(--em-d)} .am{color:var(--am)} .rd{color:var(--rd)} .cy{color:var(--cy)} .bl{color:var(--bl-d)} .or{color:var(--or-d)} .vi{color:var(--vi-d)} .w{color:var(--white)}
+.note{border-radius:12px;padding:10px 12px;font-weight:600;font-size:13px;display:flex;gap:8px;align-items:flex-start}
+.note.rd{background:var(--rd-soft);color:var(--rd)} .note.am{background:var(--am-soft);color:var(--am)} .note.em{background:var(--em-soft);color:var(--em-d)}
+input.field,select.field{width:100%;min-height:48px;padding:0 14px;background:var(--s1);border:1px solid var(--stroke);border-radius:var(--r-sm);color:var(--white)}
+input.field::placeholder{color:var(--faint)}
+input.field:focus,select.field:focus{border-color:var(--bl);outline:none}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chipsel{min-height:36px;padding:0 14px;border-radius:999px;background:var(--s1);border:1px solid var(--stroke);color:var(--muted);font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.chipsel[aria-pressed="true"]{background:var(--or);border-color:var(--or);color:#fff;font-weight:700}
+.chipsel:disabled{opacity:.35;cursor:not-allowed}
+.sel{box-shadow:0 0 0 2px var(--rc),0 8px 20px -8px var(--rc);border-color:transparent!important}
+.qrbox{background:var(--s2);border:1px solid var(--stroke);border-radius:14px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;position:relative}
+.qrbox canvas{width:196px;height:196px;border-radius:10px;background:#fff;box-shadow:0 4px 14px rgba(11,21,38,.08)}
+.qrbox .lock{position:absolute;inset:0;border-radius:14px;background:rgba(255,255,255,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px;color:var(--am);font-weight:600}
+.qrmeta{display:flex;justify-content:space-between;align-items:center;width:100%;font-size:12px}
+.sheet-bg{position:absolute;inset:0;background:rgba(11,21,38,.45);display:flex;align-items:flex-end;z-index:5}
+.sheet{background:var(--s1);width:100%;max-height:92%;overflow-y:auto;border-radius:var(--r-xl) var(--r-xl) 0 0;padding:10px 18px 22px}
+.grab{width:40px;height:4px;background:var(--stroke);border-radius:4px;margin:0 auto 14px}
+.sheet h3{font-size:22px;font-weight:700;margin:0 0 4px;color:var(--white)}
+.sub{color:var(--muted);margin:0 0 14px}
+.steps{display:flex;gap:4px;margin-bottom:14px} .steps i{flex:1;height:4px;border-radius:4px;background:var(--stroke)} .steps i.on{background:linear-gradient(90deg,var(--em),var(--cy))}
+.opts{display:grid;gap:8px;margin-bottom:14px}
+.opts.c3{grid-template-columns:repeat(3,1fr)} .opts.c4{grid-template-columns:repeat(4,1fr)}
+.opt{border:1px solid var(--stroke);border-radius:12px;padding:12px;text-align:start;background:var(--s1);min-height:48px}
+.opt:disabled{opacity:.35;cursor:not-allowed}
+.opt[aria-pressed="true"]{border-color:var(--em);box-shadow:inset 0 0 0 1px var(--em);background:var(--em-soft)}
+.opt.pump{text-align:center;font-family:var(--mono);font-weight:700;font-size:20px;padding:10px 0;color:var(--white)}
+.opt b{color:var(--white)}
+.opt small{display:block;color:var(--muted);font-size:11px;margin-top:2px;font-family:var(--body);font-weight:500}
+.amount{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:10px 0 4px;direction:ltr}
+.amount input{width:200px;text-align:center;font-family:var(--mono);font-weight:700;font-size:36px;border:0;border-bottom:2px solid var(--stroke);background:transparent;color:var(--em-d)}
+.amount input:focus{outline:none;border-color:var(--em)}
+.sum{padding:4px 14px}
+.sum div{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed var(--stroke)}
+.sum div:last-child{border:0;font-weight:700;color:var(--white)} .sum span:first-child{color:var(--muted)}
+.success{text-align:center;padding:10px 0}
+.tick{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--em),var(--cy));color:#fff;display:grid;place-items:center;margin:6px auto 12px}
+.code{font-family:var(--mono);font-weight:700;font-size:34px;letter-spacing:.3em;padding:12px;background:var(--s2);border:1px solid var(--stroke);border-radius:12px;margin:12px 0;direction:ltr;color:var(--vi-d);text-align:center}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;direction:ltr}
+.keypad button{min-height:48px;border-radius:var(--r-sm);background:var(--s1);border:1px solid var(--stroke);font-family:var(--mono);font-weight:700;font-size:18px;color:var(--white)}
+.toast{position:fixed;inset-inline:0;margin-inline:auto;bottom:calc(24px + env(safe-area-inset-bottom,0px));width:max-content;max-width:calc(100% - 32px);background:var(--white);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;z-index:60;text-align:center;box-shadow:0 8px 24px rgba(11,21,38,.25)}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+.tiny{font-size:11px;color:var(--faint);margin-top:14px;text-align:center}
+.toggle{appearance:none;width:48px;height:28px;border-radius:999px;background:#CBD5E1;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s}
+.toggle::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:inset-inline-start .15s}
+.toggle:checked{background:var(--em)} .toggle:checked::after{inset-inline-start:23px}
+.rule{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--s2)} .rule:last-child{border:0;padding-bottom:0} .rule:first-child{padding-top:0}
+.rule .t{flex:1;min-width:0} .rule b{display:block;color:var(--white);font-weight:600} .rule span{color:var(--muted);font-size:12px}
+.alertc{display:flex;gap:12px;align-items:flex-start}
+.alertc p{margin:4px 0 0;color:var(--ink);font-size:13px;line-height:1.5}
+.alertc .tag{font-size:11px;font-weight:700}
+.live{background:var(--s2);border:1px solid var(--stroke);border-radius:12px;padding:12px}
+.live .hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.live .vals{display:flex;gap:10px} .live .vals>div{flex:1}
+.live .vals b{font-family:var(--mono);font-size:20px;color:var(--cy)}
+.admin{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:248px minmax(0,1fr);gap:20px;align-items:start}
+.sidebar{background:var(--s1);border:1px solid var(--stroke);border-radius:var(--r-lg);padding:16px;position:sticky;top:14px}
+.org{display:flex;gap:10px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--s2);margin-bottom:12px}
+.org b{display:block;font-size:14px;color:var(--white)} .org span{font-size:12px;color:var(--muted)}
+.portal{display:flex;background:var(--s2);border-radius:12px;padding:3px;margin-bottom:12px}
+.portal button{flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:600;color:var(--muted);min-height:36px}
+.portal button[aria-pressed="true"]{color:#fff;font-weight:700}
+.menu{display:flex;flex-direction:column;gap:2px}
+.menu button{display:flex;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-radius:10px;font-weight:600;color:var(--muted);text-align:start}
+.menu button:hover{background:var(--s2);color:var(--ink)}
+.menu button[aria-current="true"]{background:var(--rc-soft);color:var(--rc-d)}
+.menu .cnt{margin-inline-start:auto;background:var(--or);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:1px 7px;font-family:var(--mono)}
+.side-foot{margin-top:16px;padding-top:12px;border-top:1px solid var(--s2);font-size:12px;color:var(--muted);line-height:1.6}
+@media (max-width:860px){.admin{grid-template-columns:minmax(0,1fr)}.sidebar{position:static}.menu{flex-direction:row;overflow-x:auto}.menu button{white-space:nowrap}.side-foot{display:none}}
+.main{min-width:0;display:flex;flex-direction:column;gap:16px}
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ph h1{font-weight:700;font-size:26px;margin:0;color:var(--white);text-wrap:balance}
+.ph p{margin:4px 0 0;color:var(--muted)}
+.ph .acts{display:flex;gap:8px;flex-wrap:wrap}
+.wk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:960px){.wk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.wk .card{display:flex;flex-direction:column;gap:2px}
+.wk .card .top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.wk .card .ico{width:34px;height:34px;border-radius:10px}
+.wk .card b{display:block;font-family:var(--mono);font-size:22px;color:var(--white)}
+.wk .card em{font-style:normal;font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+@media (max-width:1040px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{min-width:0}
+.panel h2{font-size:16px;margin:0 0 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--white);font-weight:600}
+.panel h2 span{font-size:12px;color:var(--muted);font-weight:500;font-family:var(--body)}
+.tbl-wrap{overflow-x:auto;margin:0 -16px;padding:0 16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;font-weight:700;color:var(--muted);text-align:start;padding:10px 12px;border-bottom:1px solid var(--stroke);white-space:nowrap;background:var(--s2)}
+td{padding:10px 12px;border-bottom:1px solid var(--s2);white-space:nowrap;vertical-align:middle;color:var(--ink)}
+tr:last-child td{border-bottom:0}
+tr.off td:not(:nth-last-child(-n+2)){opacity:.5}
+td.mut{color:var(--muted)} td b{color:var(--white)}
+.mini{width:130px} .mini .quota{margin-top:4px}
+.tinput{width:120px;min-height:36px;padding:0 10px;border:1px solid var(--stroke);border-radius:var(--r-sm);background:var(--s1);font-family:var(--mono);direction:ltr;color:var(--white)}
+.tinput:focus{border-color:var(--bl);outline:none}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.filters input,.filters select{min-height:44px;padding:0 12px;border:1px solid var(--stroke);border-radius:var(--r-sm);background:var(--s1);min-width:0}
+.filters input{flex:1 1 220px}
+.wbtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:var(--r-sm);font-weight:700;background:var(--rc);color:#fff}
+.wbtn.s{background:var(--s1);color:var(--white);border:1px solid var(--stroke)}
+.hbar{display:flex;align-items:center;gap:10px;margin-bottom:12px} .hbar .l{width:72px;flex-shrink:0} .hbar .track{flex:1;height:10px;background:var(--s2);border-radius:6px;overflow:hidden} .hbar .track i{display:block;height:100%;border-radius:6px} .hbar .v{width:130px;text-align:end;flex-shrink:0}
+.chart{display:flex;align-items:flex-end;gap:10px;height:190px;padding-top:6px}
+.chart div{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.chart i{width:100%;max-width:64px;border-radius:6px 6px 2px 2px;min-height:4px}
+.chart span{font-size:11px;color:var(--muted)}
+.pumps{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.pumpc{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.pumpc .n{font-family:var(--mono);font-weight:700;font-size:30px;color:var(--white)}
+.pumpc .hd{display:flex;justify-content:space-between;align-items:center;width:100%}
+.pumpc.off{background:var(--s2)}
+.modal-bg{position:fixed;inset:0;background:rgba(11,21,38,.45);display:grid;place-items:center;z-index:40;padding:16px}
+.modal{background:var(--s1);border-radius:var(--r-xl);padding:22px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(11,21,38,.25)}
+.modal h3{margin:0 0 4px;font-size:20px;color:var(--white)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin:14px 0 16px}
+.mgrid .full{grid-column:1/-1}
+.fieldw{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fieldw label{font-weight:600;font-size:13px;color:var(--ink)}
+.checkrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--s2);border-radius:10px;font-weight:600;cursor:pointer}
+.multi{display:flex;gap:8px;flex-wrap:wrap}
+.multi label{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--stroke);border-radius:999px;font-weight:600;font-size:13px;cursor:pointer}
+@media (max-width:520px){.mgrid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.4}}}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
+.multi.col{flex-direction:column;gap:6px}
+.multi.col label{border-radius:10px;justify-content:space-between;width:100%}
+.multi label:has(input:checked){border-color:var(--bl);background:var(--bl-soft);color:var(--bl-d)}
+.dock button{position:relative}
+.dock .nbadge{position:absolute;top:2px;inset-inline-end:calc(50% - 20px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--or);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;font-family:var(--mono)}
+.tierrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--s2)}
+.tierrow .t{flex:1;min-width:0}
+.tierrow .t b{display:block;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tierrow .t span{font-size:12px;color:var(--muted)}
+.tierrow .r{width:120px;flex-shrink:0;text-align:end;font-size:12px}
+.tierrow .r .quota{margin-top:4px}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.kv>div{background:var(--s2);border-radius:10px;padding:10px}
+.kv span{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.kv b{display:block;font-family:var(--mono);font-size:14px;color:var(--white);margin-top:2px}
+.req{display:flex;flex-direction:column;gap:10px}
+.req .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.req .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.req .quote{background:var(--s2);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink);line-height:1.55}
+.req .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.req .acts .fieldw{flex:1 1 140px}
+.req .acts input{min-height:40px}
+.btn-ok{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:var(--r-sm);font-weight:700;background:var(--em);color:#fff}
+.btn-no{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:var(--r-sm);font-weight:700;background:var(--rd-soft);color:var(--rd)}
+.reqgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+textarea.field{width:100%;min-height:84px;padding:10px 14px;background:var(--s1);border:1px solid var(--stroke);border-radius:var(--r-sm);color:var(--white);font:inherit;resize:vertical}
+textarea.field:focus{border-color:var(--bl);outline:none}
+.tierhead{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.hint{font-size:11px;color:var(--muted)}
+[dir="rtl"] .num{direction:rtl}
+.ltr,[dir="rtl"] .ltr{direction:ltr;unicode-bidi:isolate}
+.tierrow .r{width:150px;font-size:11px}
+</style>
+
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+<main id="app"></main>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@1.54.0/dist/umd/lucide.min.js"></script>
+<script>
+/* ---------- icons: Lucide when available, inline fallback otherwise ---------- */
+const LU={wallet:'Wallet',clock:'Clock',history:'History',truck:'Truck',car:'CarFront',bus:'Bus',user:'CircleUserRound',users:'Users',pump:'Fuel',dash:'LayoutDashboard',bell:'Bell',list:'ListChecks',receipt:'ReceiptText',check:'Check',checkc:'CircleCheck',pin:'MapPin',key:'KeyRound',shield:'ShieldCheck',bank:'Landmark',plus:'Plus',edit:'Pencil',download:'Download',qr:'QrCode',rfid:'Nfc',camera:'Camera',route:'Navigation',swap:'ArrowLeftRight',gauge:'Gauge',battery:'BatteryLow',lock:'Lock',finger:'Fingerprint',power:'Power',nozzle:'Droplet',layers:'Layers',refresh:'RefreshCw',grid:'Network',phone:'Phone',cog:'Settings',percent:'Percent',chart:'ChartColumn',x:'X',inbox:'Inbox',send:'Send',xc:'CircleX',up:'TrendingUp',hour:'Hourglass',unlock:'LockOpen',info:'Info',coins:'HandCoins',alert:'CircleAlert',building:'Building2',lang:'Languages',timer:'Timer',search:'Search',scan:'ScanLine',siren:'ShieldAlert',ucheck:'UserCheck',chev:'ChevronLeft'};
+const ICON={
+ wallet:'<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ truck:'<path d="M2 6h11v10H2zM13 9h4l4 4v3h-8"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',
+ pump:'<path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M7 7h5v4H7z"/>',
+ check:'<path d="M5 12l5 5 9-10"/>', x:'<path d="M6 6l12 12M18 6L6 18"/>', plus:'<path d="M12 5v14M5 12h14"/>',
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'
+};
+const _icCache={};
+function icInner(n){if(_icCache[n])return _icCache[n];const L=window.lucide&&window.lucide.icons&&window.lucide.icons[LU[n]];
+ const s=L?L.map(([t,a])=>`<${t} ${Object.entries(a).map(([k,v])=>`${k}="${v}"`).join(' ')}/>`).join(''):(ICON[n]||ICON.info);return _icCache[n]=s}
+const ic=(n,s)=>`<svg class="i" viewBox="0 0 24 24"${s?` style="width:${s}px;height:${s}px"`:''} aria-hidden="true">${icInner(n)}</svg>`;
+
+/* ---------- helpers ---------- */
+const T=(ar,en)=>S.lang==='ar'?ar:en;
+const N=o=>o==null?'':typeof o==='string'?o:o[S.lang];
+const W=(ar,en)=>({ar,en});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sar=n=>Math.round(n).toLocaleString('en-US');
+const CUR=()=>T('ج.س','SDG');
+const money=(n,cls='')=>`<span class="num ${cls}">${sar(n)}</span><span class="cap">${CUR()}</span>`;
+const curTxt=n=>`${sar(n)} ${CUR()}`;
+const short=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(Math.abs(n)>=1e7?1:2)+T(' مليون','M'):sar(n);
+const PRICES={'91':3420,'95':3600,'Diesel':3250};
+const FUEL={'91':W('بنزين','Benzene'),'95':W('سوبر','Super'),'Diesel':W('جازولين','Diesel')};
+const FUELFULL={'91':W('بنزين عادي','Regular benzene'),'95':W('بنزين سوبر','Super benzene'),'Diesel':W('جازولين (ديزل)','Diesel (gasoil)')};
+const gcls=f=>f==='91'?'fg91':f==='95'?'fg95':'fgdz';
+const fuelTag=f=>`<span class="fg ${gcls(f)}">${N(FUEL[f])}</span>`;
+const liters=(a,f)=>a/PRICES[f];
+const LET={K:'خ',H:'ح',R:'ر',T:'ط',O:'أ',M:'م',B:'ب',S:'س',D:'د',N:'ن',G:'ج',A:'ا',L:'ل',P:'ب'};
+const arDig=s=>String(s).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const autoAr=l=>l.split('').map(c=>LET[c]||c).join(' ');
+const plate=p=>`<span class="plate"><span>${esc(p[0])} ${esc(p[1])}</span><span>${arDig(esc(p[0]))} ${esc(p[2])}</span></span>`;
+const plateTxt=p=>S.lang==='ar'?`${arDig(p[0])} ${p[2]}`:`${p[0]} ${p[1]}`;
+const nowHM=()=>new Date().toTimeString().slice(0,5);
+const quotaCls=p=>p>=98?'rd':p>=85?'am':'';
+const quota=(used,lim)=>{const p=Math.min(100,used/Math.max(1,lim)*100);return `<div class="quota"><i class="${quotaCls(p)}" style="width:${p}%"></i></div>`};
+const pair=(a,b)=>b>=1e6?`${(a/1e6).toFixed(2)} / ${(b/1e6).toFixed(2)} ${T('مليون','M')}`:`${sar(a)} / ${sar(b)}`;
+const plus=n=>T(`زيادة ${short(n)}`,`+${short(n)}`);
+const vatOf=a=>S.tax.on?a-a/(1+S.tax.rate/100):0;
+
+/* ---------- shared data ---------- */
+const S={
+ lang:'ar', mode:'app', role:'driver', portal:'fleet', me:'d3',
+ tab:{driver:'wallet',fleet:'dash',station:'scan'},
+ wtab:{fleet:'overview',station:'overview'},
+ fleetBalance:18450000, sheet:null, flow:null, rq:null, toast:null, modal:null, hubBack:null,
+ keyCode:'', txFilter:{q:'',fuel:'all'}, reqFilter:'pending',
+ odo:{val:'',done:false}, qr:{token:'',left:30}, scan:null,
+ tax:{on:true,rate:17},
+ org:{ar:'شركة النماء للخدمات اللوجستية',en:'Al Namaa Logistics Co.',phone:'+249 91 230 4471',city:W('الخرطوم','Khartoum')},
+ rules:{network:true,antiSiphon:true,geofence:true,wrongFuel:true,odo:true,maxFill:true,maxFillAmt:400000,hours:true},
+ network:['s1','s2'],
+ pumps:[1,2,3,4,5,6,7,8].map(n=>({n,grades:n<=4?['91','95']:n<=6?['91','95','Diesel']:['Diesel'],flow:n>=7?120:40,on:n!==7})),
+ tiers:[
+  {id:'t1',icon:'truck',c:'or',name:W('شاحنات النقل','Freight trucks'),budget:1500000,dailyL:200,win:'24/7'},
+  {id:'t2',icon:'bus',c:'bl',name:W('حافلات التوصيل','Delivery vans'),budget:1200000,dailyL:80,win:'06:00–21:00'},
+  {id:'t3',icon:'car',c:'vi',name:W('سيارات الإدارة والمبيعات','Management & sales cars'),budget:750000,dailyL:50,win:'07:00–22:00'}
+ ],
+ drivers:[
+  {id:'d1',name:W('فيصل عثمان','Faisal Osman'),phone:'+249 91 234 2114',app:true,active:true,code:'D-3012'},
+  {id:'d2',name:W('عمر الطيب','Omar Altayeb'),phone:'+249 92 118 8730',app:true,active:true,code:'D-3025'},
+  {id:'d3',name:W('عبدالرحمن حسن','Abdurahman Hassan'),phone:'+249 90 552 4471',app:true,active:true,code:'D-3071'},
+  {id:'d4',name:W('سعد إبراهيم','Saad Ibrahim'),phone:'+249 99 407 0952',app:true,active:true,code:'D-3088'},
+  {id:'d5',name:W('يوسف بابكر','Yousif Babiker'),phone:'+249 12 960 3318',app:false,active:true,code:'D-3102'},
+  {id:'d6',name:W('حمد الأمين','Hamad Alamin'),phone:'+249 11 773 7605',app:true,active:true,code:'D-3117'}
+ ],
+ fleet:[
+  {id:'f1',plate:['4410','KRT','خ ر ط'],name:W('إيسوزو دي ماكس','Isuzu D-Max'),driver:'d1',fuel:'Diesel',tier:'t1',custom:null,extra:0,used:1236000,active:true,tag:92},
+  {id:'f2',plate:['2290','KH','خ'],name:W('تويوتا هايلكس','Toyota Hilux'),driver:'d2',fuel:'Diesel',tier:'t1',custom:null,extra:0,used:646000,active:true,tag:11},
+  {id:'f3',plate:['7781','KRT','خ ر ط'],name:W('هيونداي H1','Hyundai H1'),driver:'d3',fuel:'95',tier:'t2',custom:null,extra:150000,used:768000,active:true,tag:88},
+  {id:'f4',plate:['6012','KH','خ'],name:W('تويوتا كورولا','Toyota Corolla'),driver:'d4',fuel:'91',tier:'t3',custom:null,extra:0,used:742000,active:true,tag:76},
+  {id:'f5',plate:['3355','OM','أ م'],name:W('تويوتا هايس','Toyota HiAce'),driver:'d5',fuel:'95',tier:'t2',custom:null,extra:0,used:307000,active:true,tag:64},
+  {id:'f6',plate:['9087','BH','ب ح'],name:W('ميتسوبيشي كانتر','Mitsubishi Canter'),driver:'d6',fuel:'Diesel',tier:'t1',custom:1800000,extra:0,used:1440000,active:true,tag:95}
+ ],
+ requests:[
+  {id:'R-1043',driver:'d4',veh:'f4',type:'limit',amount:200000,reason:'trip',note:W('رحلة توصيل إلى ود مدني يوم الثلاثاء.','Delivery trip to Wad Madani on Tuesday.'),status:'pending',when:W('اليوم 09:15','Today 09:15')},
+  {id:'R-1038',driver:'d3',veh:'f3',type:'limit',amount:150000,reason:'extra',note:W('مهام توصيل إضافية خلال الأسبوع.','Additional delivery assignments this week.'),status:'approved',approved:150000,when:W('20 أكتوبر','20 Oct'),decided:W('20 أكتوبر','20 Oct'),reply:W('معتمد لهذا الشهر فقط.','Approved for this month only.')}
+ ],
+ stations:[
+  {id:'s1',name:W('محطة النيل الأزرق','Blue Nile Station'),area:W('شارع أفريقيا','Africa Rd'),km:1.2,pumps:8,wait:W('بدون انتظار','No queue'),phone:'+249 18 377 0001'},
+  {id:'s2',name:W('وقود المقرن','Al Mogran Fuel'),area:W('شارع النيل','Nile St'),km:2.6,pumps:6,wait:W('انتظار 4 دقائق','4 min wait'),phone:'+249 18 377 0002'},
+  {id:'s3',name:W('طاقة بحري','Bahri Energy'),area:W('المنطقة الصناعية، بحري','Industrial Area, Bahri'),km:4.8,pumps:12,wait:W('انتظار 7 دقائق','7 min wait'),phone:'+249 18 377 0003'}
+ ],
+ staff:[
+  {id:'a1',name:W('مجدي الشيخ','Magdi Alsheikh'),code:'ATT-01',role:'sup',shift:'A',dev:'iPhone 13',on:true},
+  {id:'a2',name:W('إبراهيم بابكر','Ibrahim Babiker'),code:'ATT-09',role:'att',shift:'A',dev:'Galaxy A54',on:true},
+  {id:'a3',name:W('أنور عبدالله','Anwar Abdalla'),code:'ATT-12',role:'att',shift:'B',dev:'Galaxy A34',on:false}
+ ],
+ secLog:[
+  {c:'rd',t:W('إيقاف المضخة: نوع وقود غير مسموح','Pump stopped: grade not allowed'),d:W('طلبت المركبة 9087 بنزين سوبر بدلاً من الجازولين المسجّل لها في طاقة بحري، فأُوقف الصرف.','Vehicle 9087 BH requested super benzene instead of its registered diesel at Bahri Energy. Dispensing was stopped.'),ago:W('قبل 14 دقيقة','14 min ago'),ref:'9087-BH'},
+  {c:'am',t:W('طلب يتجاوز سعة الخزان','Request exceeds tank capacity'),d:W('طلبت المركبة 4410 تعبئة 140 لتراً لخزان سعته 76 لتراً، فتوقف المسدس عند حد الأمان.','Vehicle 4410 KRT requested 140 L for a 76 L tank. The nozzle stopped at the safety limit.'),ago:W('قبل ساعة','1 hour ago'),ref:'RFID-4410'}
+ ],
+ tx:[
+  {id:'T-90412',who:'driver',fleetId:'f3',station:'s1',pump:3,fuel:'95',amount:180000,status:'done',when:W('اليوم 07:42','Today 07:42'),src:'qr'},
+  {id:'T-90377',who:'driver',fleetId:'f3',station:'s2',pump:5,fuel:'95',amount:144000,status:'done',when:W('أمس 18:10','Yesterday 18:10'),src:'app'},
+  {id:'T-90301',who:'other',fleetId:'f1',station:'s1',pump:1,fuel:'Diesel',amount:225000,status:'done',when:W('اليوم 06:55','Today 06:55'),src:'rfid'},
+  {id:'T-90288',who:'other',station:'s1',pump:6,fuel:'91',amount:90000,status:'done',when:W('اليوم 06:20','Today 06:20'),plate:['5521','KH','خ'],src:'rfid'},
+  {id:'T-90271',who:'other',station:'s1',pump:2,fuel:'95',amount:165000,status:'done',when:W('اليوم 05:48','Today 05:48'),plate:['8830','OM','أ م'],src:'rfid'},
+  {id:'T-90250',who:'other',fleetId:'f4',station:'s3',pump:2,fuel:'91',amount:142000,status:'done',when:W('أمس 21:03','Yesterday 21:03'),src:'rfid'},
+  {id:'T-90233',who:'other',fleetId:'f6',station:'s1',pump:4,fuel:'Diesel',amount:300000,status:'done',when:W('أمس 19:40','Yesterday 19:40'),src:'rfid'},
+  {id:'T-90210',who:'other',fleetId:'f2',station:'s2',pump:1,fuel:'Diesel',amount:195000,status:'done',when:W('أمس 14:12','Yesterday 14:12'),src:'rfid'}
+ ]
+};
+try{const l=localStorage.getItem('petro-lang');if(l==='ar'||l==='en')S.lang=l}catch(e){}
+
+const $=s=>document.querySelector(s);
+const fv=id=>S.fleet.find(f=>f.id===id);
+const drv=id=>S.drivers.find(d=>d.id===id);
+const drvName=f=>f&&f.driver&&drv(f.driver)?N(drv(f.driver).name):T('غير مخصص','Unassigned');
+const stn=id=>S.stations.find(s=>s.id===id);
+const pumpOf=n=>S.pumps.find(p=>p.n===n);
+const tierById=id=>S.tiers.find(t=>t.id===id)||null;
+const tierOf=f=>f?tierById(f.tier):null;
+const baseLim=f=>f.custom!=null?f.custom:(tierOf(f)?tierOf(f).budget:0);
+const limOf=f=>baseLim(f)+(f.extra||0);
+const MY='s1';
+const ORG=()=>W(S.org.ar,S.org.en);
+const me=()=>drv(S.me);
+const myVeh=()=>S.fleet.find(f=>f.driver===S.me)||null;
+const txPlate=t=>t.fleetId&&fv(t.fleetId)?fv(t.fleetId).plate:t.plate;
+function toast(m){S.toast=m;render();clearTimeout(toast.t);toast.t=setTimeout(()=>{S.toast=null;render()},2800)}
+function newToken(){const v=myVeh();S.qr.token=`PF-${me().code.slice(2)}-${v?(v.fuel==='Diesel'?'DZ':v.fuel):'00'}-${1000+Math.floor(Math.random()*9000)}`;S.qr.left=30}
+newToken();
+function capFor(f){let cap=Math.max(0,Math.min(limOf(f)-f.used,S.fleetBalance)),why='limit';
+ if(S.rules.maxFill&&S.rules.maxFillAmt<cap){cap=S.rules.maxFillAmt;why='perfill'}return {cap,why}}
+const odoLocked=()=>S.rules.odo&&!S.odo.done;
+function driverBlock(){const d=me(),v=myVeh();
+ if(!d.active)return {k:'driver',msg:T('حسابك موقوف من قِبل مدير الأسطول. يمكنك تقديم طلب إعادة تفعيل.','Your account has been suspended by your fleet manager. You can submit a reactivation request.')};
+ if(!v)return {k:'noveh',msg:T('لا توجد مركبة مخصصة لك حالياً.','No vehicle is assigned to you.')};
+ if(!v.active)return {k:'veh',msg:T('المركبة المخصصة لك موقوفة من قِبل مدير الأسطول. يمكنك تقديم طلب إعادة تفعيل.','Your assigned vehicle has been suspended by your fleet manager. You can submit a reactivation request.')};
+ return null}
+const statusPill=t=>t.status==='done'?`<span class="pill em">${ic('checkc',13)}${T('مكتملة','Completed')}</span>`:t.status==='fueling'?`<span class="pill cy"><span class="dot pulse"></span>${T('جارٍ الصرف','Dispensing')}</span>`:`<span class="pill am"><span class="dot"></span>${T('معتمدة','Authorized')}</span>`;
+function charge(fid,amount){if(fid&&fv(fid)){fv(fid).used+=amount;S.fleetBalance-=amount}}
+
+/* requests */
+const REQTYPE={limit:W('زيادة الحد الشهري','Monthly limit increase'),activate:W('إعادة التفعيل','Reactivation')};
+const REASON={trip:W('رحلة خارج المدينة','Out-of-town trip'),extra:W('مهام عمل إضافية','Additional assignments'),emergency:W('حالة طارئة','Emergency'),review:W('مراجعة قرار الإيقاف','Review of suspension'),other:W('سبب آخر','Other')};
+const pendingReqs=()=>S.requests.filter(r=>r.status==='pending');
+const reqPill=r=>r.status==='pending'?`<span class="pill am">${ic('hour',13)}${T('قيد المراجعة','Under review')}</span>`:r.status==='approved'?`<span class="pill em">${ic('checkc',13)}${T('معتمد','Approved')}</span>`:`<span class="pill rd">${ic('xc',13)}${T('مرفوض','Declined')}</span>`;
+const myReqs=()=>S.requests.filter(r=>r.driver===S.me);
+
+/* QR (illustrative pattern seeded by the token) */
+function drawQR(){
+ const c=document.getElementById('qrc');if(!c)return;
+ const n=29,px=196,dpr=window.devicePixelRatio||1;c.width=px*dpr;c.height=px*dpr;
+ let x=null;try{x=c.getContext('2d')}catch(e){}if(!x)return;x.scale(dpr,dpr);x.fillStyle='#fff';x.fillRect(0,0,px,px);
+ let h=0;for(const ch of S.qr.token)h=(h*31+ch.charCodeAt(0))>>>0;
+ const rnd=()=>{h^=h<<13;h^=h>>>17;h^=h<<5;return ((h>>>0)%1000)/1000};
+ const m=(px-16)/n,o=8;x.fillStyle='#0B1526';
+ const finder=(cx,cy)=>{x.fillRect(o+cx*m,o+cy*m,7*m,7*m);x.fillStyle='#fff';x.fillRect(o+(cx+1)*m,o+(cy+1)*m,5*m,5*m);x.fillStyle='#0B1526';x.fillRect(o+(cx+2)*m,o+(cy+2)*m,3*m,3*m)};
+ const inF=(i,j)=>(i<8&&j<8)||(i>n-9&&j<8)||(i<8&&j>n-9)||(i>11&&i<17&&j>11&&j<17);
+ for(let i=0;i<n;i++)for(let j=0;j<n;j++){if(inF(i,j))continue;if(rnd()>.52)x.fillRect(o+i*m,o+j*m,Math.ceil(m),Math.ceil(m))}
+ finder(0,0);finder(n-7,0);finder(0,n-7);
+ x.fillStyle='#00A86B';x.fillRect(o+12.4*m,o+12.4*m,4.2*m,4.2*m);
+ x.fillStyle='#fff';x.beginPath();x.arc(px/2,px/2+2,5,0,Math.PI*2);x.fill();x.beginPath();x.moveTo(px/2-5,px/2);x.lineTo(px/2,px/2-9);x.lineTo(px/2+5,px/2);x.fill();
+}
+setInterval(()=>{
+ S.qr.left--;if(S.qr.left<=0){newToken();const tk=document.getElementById('qrtk');if(tk)tk.textContent=S.qr.token;drawQR()}
+ const e=document.getElementById('qrt');if(e)e.textContent=S.qr.left+T('ث','s');
+},1000);
+
+const appbar=(title,eyebrow,right='')=>`<div class="appbar"><div class="ttl">${eyebrow?`<small><span class="dot pulse"></span>${esc(eyebrow)}</small>`:''}<b>${title}</b></div>${right}</div>`;
+const initials=nm=>N(nm).split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join(S.lang==='ar'?' ':'');
+const avaBtn=init=>`<button class="ava" data-act="hub" aria-label="${T('حسابي','My account')}">${esc(init)}</button>`;
+
+/* ---------- DRIVER ---------- */
+function driverWallet(){
+ const d=me(),v=myVeh(),blk=driverBlock(),locked=!blk&&odoLocked(),t=tierOf(v);
+ const cap=v?capFor(v).cap:0,pct=v?v.used/Math.max(1,limOf(v))*100:0;
+ const pendLimit=myReqs().some(r=>r.status==='pending'&&r.type==='limit'),pendAct=myReqs().some(r=>r.status==='pending'&&r.type==='activate');
+ return appbar(T('تصريح الوقود','Fuel Pass'),N(ORG()),avaBtn(initials(d.name)))+
+ `<div class="card hero h-em">
+  <div style="display:flex;gap:12px;align-items:center">
+   <span class="ava" style="width:52px;height:52px;background:rgba(255,255,255,.22)">${esc(initials(d.name))}</span>
+   <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="num muted" style="font-size:12px">${esc(d.code)}</span><span class="pill"><span class="dot"></span>${d.active?T('الحساب مفعّل','Account active'):T('الحساب موقوف','Account suspended')}</span></div>
+   <b style="display:block;font-family:var(--head);font-size:20px">${esc(N(d.name))}</b><span class="muted">${v?esc(N(v.name)):T('لا توجد مركبة مخصصة','No vehicle assigned')}</span></div>
+  </div>
+  ${v?`<div class="deep" style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+   <div><span class="lbl">${T('رقم اللوحة','Plate number')}</span><div style="margin-top:6px">${plate(v.plate)}</div></div>
+   <span class="pill">${ic('rfid',14)}${T('الشريحة متصلة','Tag connected')} · <span class="num">${v.tag}%</span></span></div>`:''}
+ </div>
+ ${blk?`<div class="note rd" style="margin-top:12px;flex-direction:column;gap:10px"><span style="display:flex;gap:8px">${ic('lock',16)}${blk.msg}</span>${blk.k!=='noveh'?(pendAct?`<span class="pill am" style="align-self:flex-start">${ic('hour',13)}${T('طلب إعادة التفعيل قيد المراجعة','Reactivation request under review')}</span>`:`<button class="btn-sm" style="align-self:flex-start;border-color:var(--rd);color:var(--rd)" data-act="newreq:activate">${ic('send',15)}${T('تقديم طلب إعادة تفعيل','Submit reactivation request')}</button>`):''}</div>`:''}
+ ${v?`<div class="g2" style="margin-top:12px">
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><span class="lbl">${T('نوع الوقود','Fuel grade')}</span><span class="ico or" style="width:30px;height:30px">${ic('nozzle',16)}</span></div><div style="margin:8px 0 4px">${fuelTag(v.fuel)}</div><span class="muted" style="font-size:12px">${S.rules.wrongFuel?T('النوع المسموح الوحيد','Only grade allowed'):T('جميع الأنواع مسموحة','All grades allowed')}</span></div>
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><span class="lbl">${T('المتاح للتعبئة','Available to fuel')}</span><span class="ico bl" style="width:30px;height:30px">${ic('wallet',16)}</span></div><b class="num w" style="display:block;font-size:20px;margin-top:8px">${short(cap)}</b><span class="cap" style="margin:0">${CUR()}</span></div>
+ </div>
+ <div class="card">
+  <div class="ch"><h3><span class="ico ${t?t.c:'em'}" style="width:32px;height:32px">${ic(t?t.icon:'layers',18)}</span>${t?esc(N(t.name)):T('بدون فئة','No tier')}</h3><span class="pill">${T('فئة المركبة','Vehicle tier')}</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span class="lbl">${T('الحد الشهري','Monthly limit')}</span><span><b class="num w" style="font-size:18px">${sar(v.used)}</b> <span class="num muted">/ ${sar(limOf(v))} ${CUR()}</span></span></div>
+  ${quota(v.used,limOf(v))}
+  <div class="kv"><div><span>${T('ميزانية الفئة','Tier budget')}</span><b>${short(baseLim(v))}</b></div><div><span>${T('زيادة معتمدة','Approved increase')}</span><b class="${v.extra?'em':''}">${v.extra?short(v.extra):'—'}</b></div><div><span>${T('المتبقي','Remaining')}</span><b>${short(Math.max(0,limOf(v)-v.used))}</b></div></div>
+  ${t?`<p class="hint" style="margin:10px 0 0">${T('ساعات التعبئة','Fueling hours')} <span class="num">${esc(t.win)}</span> · ${T('الحد اليومي','Daily cap')} <span class="num">${t.dailyL}</span> ${T('لتر','L')}</p>`:''}
+  ${!blk?(pendLimit?`<div class="note am" style="margin-top:12px">${ic('hour',16)}${T('طلب زيادة الحد قيد المراجعة لدى مدير الأسطول.','Your limit increase request is under review by your fleet manager.')}</div>`
+   :`<button class="btn-s" style="margin-top:12px;${pct>=85?'border-color:var(--bl);color:var(--bl-d)':''}" data-act="newreq:limit">${ic('up')}${T('طلب زيادة الحد','Request a limit increase')}</button>`):''}
+ </div>
+ <div class="card">
+  <div class="ch"><h3>${T('تصريح المضخة','Pump pass')}</h3><span class="pill vi">${ic('timer',13)}<span id="qrt" class="num">${S.qr.left}${T('ث','s')}</span></span></div>
+  <p class="muted" style="margin:0 0 12px;font-size:13px">${T('اعرض هذا الرمز لعامل المحطة لتشغيل المضخة. يتجدّد الرمز كل 30 ثانية.','Show this code to the station attendant to unlock the pump. It refreshes every 30 seconds.')}</p>
+  <div class="qrbox"><canvas id="qrc" width="196" height="196" aria-label="${T('رمز الدفع','Payment code')}"></canvas>
+   <div class="qrmeta"><span class="num muted">${T('الرمز','Token')}: <span id="qrtk" class="w">${S.qr.token}</span></span><button class="link" data-act="regen">${ic('refresh',14)}${T('تجديد','Refresh')}</button></div>
+   ${blk?`<div class="lock" style="color:var(--rd)">${ic('lock',28)}<span>${T('التصريح غير متاح حالياً.','The pass is currently unavailable.')}</span></div>`
+    :locked?`<div class="lock">${ic('gauge',28)}<span>${T('سجّل قراءة العدّاد أدناه لتفعيل التصريح.','Record the odometer reading below to activate the pass.')}</span></div>`:''}
+  </div>
+  <button class="btn-p" style="margin-top:14px" data-act="pay" ${blk||locked?'disabled':''}>${ic('finger')}${T('اعتماد تشغيل المضخة','Authorize pump')}</button>
+ </div>
+ ${S.rules.odo&&!blk?`<div class="card">
+  <div class="ch"><h3><span class="ico am" style="width:32px;height:32px">${ic('gauge',18)}</span>${T('فحص ما قبل التعبئة','Pre-fueling check')}</h3>${S.odo.done?`<span class="pill em">${T('مكتمل','Completed')}</span>`:`<span class="pill am">${T('مطلوب','Required')}</span>`}</div>
+  <p class="muted" style="margin:0 0 12px;font-size:13px">${T('تشترط الشركة تسجيل قراءة العدّاد قبل كل تعبئة.','Your company requires an odometer reading before each fill-up.')}</p>
+  ${S.odo.done?`<div class="deep"><span class="lbl">${T('قراءة العدّاد (كم)','Odometer (km)')}</span><b class="num em" style="display:block;font-size:22px;margin-top:4px">${Number(S.odo.val).toLocaleString('en-US')}</b></div>`
+   :`<div class="row"><input class="field num" id="odo" inputmode="numeric" placeholder="${T('مثال: 142880','e.g. 142880')}" value="${esc(S.odo.val)}" aria-label="${T('قراءة العدّاد','Odometer reading')}"><button class="btn-s" style="flex:0 0 auto;width:auto" data-act="snap">${ic('camera')}${T('صورة','Photo')}</button></div>
+   <button class="btn-s" style="margin-top:8px" data-act="odo">${T('حفظ القراءة','Save reading')}</button>`}
+ </div>`:''}
+ <div class="sec"><div class="lbl"><span>${T('المحطات القريبة · الخرطوم','Nearby stations · Khartoum')}</span><span class="pill cy">${ic('pin',12)}GPS</span></div>
+  <div class="stack">${S.stations.map(s=>{const out=S.rules.network&&!S.network.includes(s.id);return `<div class="card" style="padding:14px">
+   <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0"><b class="w" style="font-family:var(--head);font-size:16px;display:flex;align-items:center;gap:6px"><span class="dot" style="color:${out?'var(--faint)':'var(--em)'}"></span>${esc(N(s.name))}</b><span class="muted" style="font-size:12px"><span class="num">${s.km}</span> ${T('كم','km')} · ${esc(N(s.area))}</span></div>${out?`<span class="pill">${T('خارج شبكة الشركة','Not in company network')}</span>`:s.id===MY?`<span class="pill or">${T('الأقرب','Nearest')}</span>`:''}</div>
+   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px"><span><span class="num w">${sar(PRICES[v.fuel])}</span> <span class="muted" style="font-size:12px">${T('ج.س/لتر','SDG/L')}</span> · <span class="em" style="font-size:12px">${N(s.wait)}</span></span><button class="btn-sm b" data-act="toast:${T('جارٍ فتح الاتجاهات','Opening directions')}">${ic('route',15)}${T('الاتجاهات','Directions')}</button></div></div>`}).join('')}</div></div>`:''}
+ <p class="tiny">${T('نموذج أولي ببيانات تجريبية. الرمز والأسعار للتوضيح فقط.','Prototype with sample data. The code and prices are illustrative.')}</p>`;
+}
+const myTx=()=>S.tx.filter(t=>t.who==='driver');
+function slip(t){
+ return `<div class="card" style="padding:14px">
+  <div style="display:flex;justify-content:space-between;gap:10px"><div style="min-width:0"><b class="w" style="display:block">${esc(N(stn(t.station).name))} · ${T('مضخة','Pump')} <span class="num">${t.pump}</span></b><span class="muted num" style="font-size:12px">${N(t.when)} · ${t.id}</span></div>
+  <div style="text-align:end;flex-shrink:0"><b class="num em" style="font-size:17px">${sar(t.amount)}</b><span class="cap">${CUR()}</span><div class="muted" style="font-size:12px"><span class="num">${liters(t.amount,t.fuel).toFixed(1)}</span> ${T('لتر','L')} · ${N(FUEL[t.fuel])}</div></div></div>
+  <div class="inset" style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px"><span class="em" style="font-size:12px;display:flex;gap:6px;align-items:center">${ic('receipt',15)}${T('إيصال إلكتروني','E-receipt')}${S.tax.on?` · ${T('الضريبة','VAT')} ${S.tax.rate}%: <span class="num">${sar(vatOf(t.amount))}</span>`:''}</span><button class="link" data-act="toast:${T('تم تنزيل الإيصال','Receipt downloaded')}">${ic('download',14)}PDF</button></div></div>`;
+}
+function driverHistory(){
+ const mine=myTx(),total=mine.filter(t=>t.status==='done').reduce((a,t)=>a+t.amount,0);
+ return appbar(T('سجل التعبئة','Fueling history'))+`<div class="g2"><div class="card"><span class="lbl">${T('مصروف الشهر','This month')}</span><b class="num w" style="display:block;font-size:20px;margin-top:6px">${sar(total)}</b><span class="cap" style="margin:0">${CUR()}</span></div><div class="card"><span class="lbl">${T('اللترات','Litres')}</span><b class="num cy" style="display:block;font-size:20px;margin-top:6px">${mine.reduce((a,t)=>a+liters(t.amount,t.fuel),0).toFixed(1)}</b></div></div>
+ <div class="sec"><div class="lbl"><span>${T('الإيصالات','Receipts')}</span></div><div class="stack">${mine.map(slip).join('')||`<div class="card empty">${T('لا توجد عمليات بعد.','No fill-ups yet.')}</div>`}</div></div>`;
+}
+function reqCardDriver(r){
+ return `<div class="card req"><div class="hd"><div style="min-width:0"><b class="w" style="font-family:var(--head);font-size:16px;display:block">${N(REQTYPE[r.type])}</b><span class="muted num" style="font-size:12px">${r.id} · ${N(r.when)}</span></div>${reqPill(r)}</div>
+  <div class="meta">${r.type==='limit'?`<span class="pill bl">${ic('coins',13)}<span class="num">${sar(r.amount)}</span> ${CUR()}</span>`:''}<span class="pill">${N(REASON[r.reason])}</span></div>
+  ${r.note&&N(r.note)?`<div class="quote">${esc(N(r.note))}</div>`:''}
+  ${r.status!=='pending'?`<div class="note ${r.status==='approved'?'em':'rd'}" style="font-weight:500">${ic(r.status==='approved'?'checkc':'info',16)}<span>${r.status==='approved'?(r.type==='limit'?T(`اعتُمدت زيادة بقيمة ${curTxt(r.approved)}.`,`An increase of ${curTxt(r.approved)} was approved.`):T('أُعيد تفعيل الحساب والمركبة.','Your account and vehicle were reactivated.')):T('رُفض الطلب.','The request was declined.')}${r.reply&&N(r.reply)?` ${esc(N(r.reply))}`:''}</span></div>`:''}</div>`;
+}
+function driverRequests(){
+ const rs=myReqs();
+ return appbar(T('طلباتي','My requests'),'',`<button class="iconbtn" data-act="newreq:limit" aria-label="${T('طلب جديد','New request')}">${ic('plus')}</button>`)+
+ `<div class="card hero h-vi"><b style="font-family:var(--head);font-size:17px;display:block">${T('تحتاج حداً أعلى أو إعادة تفعيل؟','Need a higher limit or reactivation?')}</b><p class="muted" style="margin:6px 0 12px;font-size:13px">${T('أرسل طلبك وسيصل مباشرة إلى مدير الأسطول للمراجعة والاعتماد.','Submit a request and it goes straight to your fleet manager for review and approval.')}</p><button class="btn-p" data-act="newreq:limit">${ic('send')}${T('تقديم طلب جديد','Submit a new request')}</button></div>
+ <div class="sec"><div class="lbl"><span>${T('سجل الطلبات','Request history')}</span><span class="pill num">${rs.length}</span></div><div class="stack">${rs.map(reqCardDriver).join('')||`<div class="card empty">${T('لم تقدّم أي طلبات بعد.','You have not submitted any requests yet.')}</div>`}</div></div>`;
+}
+function driverVehicle(){
+ const v=myVeh(),t=tierOf(v);
+ return appbar(T('مركبتي','My vehicle'),'',`<button class="iconbtn" data-act="tab:hub" aria-label="${T('رجوع','Back')}">${ic('x')}</button>`)+(v?`<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0"><b class="w" style="font-family:var(--head);font-size:18px;display:block">${esc(N(v.name))}</b><div style="margin-top:8px">${plate(v.plate)}</div></div>${fuelTag(v.fuel)}</div>
+ <div class="kv"><div><span>${T('الفئة','Tier')}</span><b style="font-family:var(--body);font-size:13px">${t?esc(N(t.name)):'—'}</b></div><div><span>${T('الحد الشهري','Monthly limit')}</span><b>${short(limOf(v))}</b></div><div><span>${T('الشريحة','Tag')}</span><b>${v.tag}%</b></div></div>
+ ${quota(v.used,limOf(v))}</div>`:`<div class="card empty">${T('لا توجد مركبة مخصصة لك.','No vehicle is assigned to you.')}</div>`)+
+ `<div class="card" style="color:var(--muted);line-height:1.7;font-size:13px">${T('هذه المركبة مخصصة لك من شركتك، وتُحتسب تعبئتها من ميزانية فئتها. تقرأ مضخات المحطات الشريكة شريحة الوقود المثبتة على فتحة الخزان وتخصم القيمة من حساب الشركة.','This vehicle is assigned to you by your company and fuel is charged against its tier budget. Partner station pumps read the fuel tag on the filler cap and charge the company account.')}</div>`;
+}
+
+/* request sheet */
+function openReq(type){const blk=driverBlock();const canAct=blk&&blk.k!=='noveh';
+ if(type==='activate'&&!canAct)type='limit';
+ if(type==='limit'&&blk){type=canAct?'activate':'limit'}
+ S.rq={type,amount:200000,reason:type==='activate'?'review':'trip',note:''};S.sheet='req';render()}
+function reqSheet(){
+ const R=S.rq,v=myVeh(),blk=driverBlock(),canAct=blk&&blk.k!=='noveh';
+ const dup=myReqs().some(r=>r.status==='pending'&&r.type===R.type);
+ const reasons=R.type==='limit'?['trip','extra','emergency','other']:['review','emergency','other'];
+ const okAmt=R.type!=='limit'||(R.amount>=10000&&R.amount<=2000000);
+ return `<h3>${T('طلب جديد','New request')}</h3><p class="sub">${T('يُرسل الطلب إلى مدير الأسطول، وستصلك النتيجة في هذه الصفحة.','Your request goes to your fleet manager. You will see the decision on this page.')}</p>
+ <div class="opts" style="grid-template-columns:1fr 1fr">
+  <button class="opt" data-act="rqtype:limit" aria-pressed="${R.type==='limit'}" ${blk?'disabled':''}><b>${ic('up',16)} ${N(REQTYPE.limit)}</b><small>${blk?T('غير متاح أثناء الإيقاف','Unavailable while suspended'):T('لهذا الشهر فقط','For this month only')}</small></button>
+  <button class="opt" data-act="rqtype:activate" aria-pressed="${R.type==='activate'}" ${canAct?'':'disabled'}><b>${ic('unlock',16)} ${N(REQTYPE.activate)}</b><small>${canAct?T('للحساب أو المركبة الموقوفة','For a suspended account or vehicle'):T('حسابك ومركبتك مفعّلان','Account and vehicle are active')}</small></button>
+ </div>
+ ${R.type==='limit'&&v?`<div class="deep" style="margin-bottom:12px;font-size:13px;display:flex;justify-content:space-between;gap:8px"><span class="muted">${T('الحد الحالي','Current limit')}</span><span class="num w">${sar(v.used)} / ${sar(limOf(v))} ${CUR()}</span></div>
+  <div class="fieldw" style="margin-bottom:8px"><label for="rqamt">${T('المبلغ الإضافي المطلوب','Additional amount requested')} (${CUR()})</label><input class="field num" id="rqamt" type="number" inputmode="numeric" min="10000" max="2000000" step="10000" value="${R.amount}"></div>
+  <div class="row" style="margin-bottom:12px">${[100000,200000,300000,500000].map(a=>`<button class="btn-sm" style="justify-content:center" data-act="rqamt:${a}">${short(a)}</button>`).join('')}</div>`:''}
+ <div class="fieldw" style="margin-bottom:12px"><label for="rqreason">${T('سبب الطلب','Reason')}</label><select class="field" id="rqreason">${reasons.map(k=>`<option value="${k}" ${R.reason===k?'selected':''}>${N(REASON[k])}</option>`).join('')}</select></div>
+ <div class="fieldw" style="margin-bottom:14px"><label for="rqnote">${T('تفاصيل إضافية (اختياري)','Additional details (optional)')}</label><textarea class="field" id="rqnote" maxlength="280" placeholder="${T('مثال: رحلة توصيل إلى ود مدني يوم الثلاثاء','e.g. Delivery trip to Wad Madani on Tuesday')}">${esc(R.note)}</textarea></div>
+ ${dup?`<div class="note am" style="margin-bottom:12px">${ic('hour',16)}${T('لديك طلب من هذا النوع قيد المراجعة. انتظر القرار قبل تقديم طلب جديد.','You already have a request of this type under review. Please wait for a decision.')}</div>`:''}
+ <div class="row"><button class="btn-s" data-act="close">${T('إلغاء','Cancel')}</button><button class="btn-p" id="rqsend" data-act="rqsend" ${dup||!okAmt?'disabled':''}>${ic('send')}${T('إرسال الطلب','Submit request')}</button></div>`;
+}
+function sendReq(){
+ const R=S.rq,v=myVeh();R.note=(($('#rqnote')||{}).value||'').trim();R.reason=($('#rqreason')||{}).value||R.reason;
+ if(R.type==='limit'){const a=+(($('#rqamt')||{}).value||0);if(!(a>=10000&&a<=2000000)){toast(T('أدخل مبلغاً بين 10,000 و 2,000,000 ج.س','Enter an amount between 10,000 and 2,000,000 SDG'));return}R.amount=a}
+ const id='R-'+(1044+S.requests.length),hm=nowHM();
+ S.requests.unshift({id,driver:S.me,veh:v?v.id:null,type:R.type,amount:R.type==='limit'?R.amount:0,reason:R.reason,note:W(R.note,R.note),status:'pending',when:W('اليوم '+hm,'Today '+hm)});
+ S.sheet=null;S.tab.driver='requests';toast(T(`تم إرسال الطلب ${id} إلى مدير الأسطول`,`Request ${id} sent to your fleet manager`));
+}
+
+/* ---------- Account pages ---------- */
+const roleName=r=>r==='sup'?W('مشرف المحطة','Station supervisor'):W('عامل مضخة','Pump attendant');
+const shiftName=s=>({A:'A · 06:00–14:00',B:'B · 14:00–22:00',C:'C · 22:00–06:00'})[s]||s;
+function profileCard(name,code,sub,color){return `<div class="card hero ${color}"><div style="display:flex;gap:12px;align-items:center"><span class="ava" style="width:56px;height:56px;background:rgba(255,255,255,.22)">${esc(initials(name))}</span><div style="flex:1;min-width:0"><b style="font-family:var(--head);font-size:19px;display:block">${esc(N(name))}</b><span class="pill num" style="margin-top:4px">${esc(code)}</span><div class="muted" style="font-size:12px;margin-top:4px">${sub}</div></div></div></div>`}
+function settingsCard(){return `<div class="sec"><div class="lbl"><span>${T('الأمان والإعدادات','Security & settings')}</span></div>
+  <div class="card"><div class="rule"><span class="ico vi">${ic('finger')}</span><div class="t"><b>${T('التحقق بالبصمة أو الرمز السري','Biometric or PIN check')}</b><span>${T('مطلوب قبل اعتماد أي تعبئة','Required before authorizing any fill-up')}</span></div><span class="pill em">${T('مفعّل','On')}</span></div>
+  <div class="rule"><span class="ico cy">${ic('layers')}</span><div class="t"><b>${T('العمل دون اتصال','Offline mode')}</b><span>${T('يحتفظ بما يصل إلى 50 عملية حتى عودة الاتصال','Keeps up to 50 transactions until the connection returns')}</span></div><span class="pill cy">${T('متزامن','Synced')}</span></div>
+  <div class="rule"><span class="ico bl">${ic('lang')}</span><div class="t"><b>${T('اللغة','Language')}</b><span>${T('العربية','English')}</span></div><button class="btn-sm" data-act="lang">${T('English','العربية')}</button></div></div></div>
+ <div class="card"><div style="display:flex;gap:12px;align-items:center"><span class="ico or">${ic('phone')}</span><div style="flex:1"><b class="w">${T('مركز العمليات · على مدار الساعة','Operations desk · 24/7')}</b><div class="num ltr em" style="user-select:all;margin-top:2px">${esc(S.org.phone)}</div></div></div></div>`}
+function hub(){
+ const back=S.hubBack?`<button class="iconbtn" data-act="hubclose" aria-label="${T('إغلاق','Close')}">${ic('x')}</button>`:'';
+ if(S.role==='driver'){const d=me(),v=myVeh();
+  return appbar(T('حسابي','My account'),'',back)+profileCard(d.name,d.code,`${T('سائق','Driver')} · ${esc(N(ORG()))}`,'h-em')+
+  `<div class="card"><div class="li"><span class="ico">${ic('phone')}</span><div class="t"><b class="num ltr">${esc(d.phone)}</b><span>${T('رقم الجوال','Mobile number')}</span></div></div>
+   <div class="li"><span class="ico bl">${ic('truck')}</span><div class="t"><b>${v?esc(N(v.name)):T('لا توجد مركبة','No vehicle')}</b><span>${T('المركبة المخصصة','Assigned vehicle')}</span></div>${v?`<button class="btn-sm" data-act="tab:vehicle">${T('التفاصيل','Details')}</button>`:''}</div>
+   <div class="li"><span class="ico or">${ic('building')}</span><div class="t"><b>${esc(N(ORG()))}</b><span>${T('جهة العمل','Employer')}</span></div></div></div>
+  <div class="note em" style="margin-top:12px;font-weight:500">${ic('shield',16)}${T('حساب السائق مخصص للتعبئة وتقديم الطلبات فقط. يدير مدير الأسطول المركبات والحدود والصلاحيات.','The driver account is for fueling and requests only. Your fleet manager manages vehicles, limits and permissions.')}</div>`+settingsCard();}
+ if(S.role==='station'){const a=S.staff[1];
+  return appbar(T('حسابي','My account'),'',back)+profileCard(a.name,a.code,`${N(roleName(a.role))} · ${esc(N(stn(MY).name))}`,'h-or')+
+  `<div class="card"><div class="li"><span class="ico or">${ic('pump')}</span><div class="t"><b>${T('المضختان 3 و 4','Pumps 3 and 4')}</b><span>${T('المضخات المخصصة','Assigned pumps')}</span></div></div><div class="li"><span class="ico vi">${ic('clock')}</span><div class="t"><b class="num">${shiftName(a.shift)}</b><span>${T('الوردية','Shift')}</span></div></div></div>`+settingsCard();}
+ const att=S.staff[1],d=me();
+ return appbar(T('الحساب والصلاحيات','Account & access'),T('مدير الأسطول','Fleet manager'),back)+
+ `<div class="card hero h-bl"><div style="display:flex;gap:12px;align-items:flex-start"><span class="ico">${ic('building')}</span><div style="flex:1;min-width:0"><b style="font-family:var(--head);font-size:18px;display:block">${esc(N(ORG()))}</b><span class="muted" style="font-size:12px">${N(S.org.city)}، ${T('السودان','Sudan')}</span></div><span class="pill">${T('موثّق','Verified')}</span></div>
+  <div class="deep" style="margin-top:12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px"><span>${T('رصيد الحساب المسبق','Prepaid balance')}</span><b class="num">${sar(S.fleetBalance)} ${CUR()}</b></div></div>
+ <div class="sec"><div class="lbl"><span>${T('معاينة تطبيقات الفريق','Preview team apps')}</span></div>
+ <div class="card"><div style="display:flex;gap:12px;align-items:center"><span class="ico">${ic('user')}</span><div style="flex:1"><b class="w">${esc(N(d.name))}</b><div class="muted" style="font-size:12px">${T('سائق','Driver')} · <span class="num">${esc(d.code)}</span></div></div></div><button class="btn-s" style="margin-top:12px" data-act="switch:driver">${ic('wallet')}${T('معاينة تطبيق السائق','Preview driver app')}</button></div>
+ <div class="card"><div style="display:flex;gap:12px;align-items:center"><span class="ico or">${ic('pump')}</span><div style="flex:1"><b class="w">${esc(N(att.name))}</b><div class="muted" style="font-size:12px">${esc(N(stn(MY).name))} · <span class="num">${esc(att.code)}</span></div></div></div><button class="btn-s" style="margin-top:12px" data-act="switch:station">${ic('qr')}${T('معاينة تطبيق العامل','Preview attendant app')}</button></div></div>`+settingsCard();
+}
+
+/* ---------- Pay flow ---------- */
+function openPay(){const blk=driverBlock();if(blk){toast(blk.msg);return}if(odoLocked()){toast(T('سجّل قراءة العدّاد أولاً','Record the odometer reading first'));return}
+ const v=myVeh();S.flow={step:1,station:null,pump:null,fuel:v.fuel,amount:200000};S.sheet='pay';render()}
+function capMsg(over,cap,why){
+ if(!over)return `${T('المتاح','Available')}: ${curTxt(cap)}`;
+ if(why==='perfill')return T(`الحد الأقصى للتعبئة الواحدة وفق سياسة الشركة: ${curTxt(cap)}`,`Company policy caps a single fill-up at ${curTxt(cap)}`);
+ return T(`المبلغ يتجاوز المتاح لك (${curTxt(cap)})`,`The amount exceeds your available ${curTxt(cap)}`);
+}
+function paySheet(){
+ const F=S.flow,v=myVeh(),{cap,why}=capFor(v);
+ const steps=`<div class="steps">${[1,2,3,4].map(i=>`<i class="${i<=F.step?'on':''}"></i>`).join('')}</div>`;
+ const back=`<button class="btn-s" data-act="back">${T('رجوع','Back')}</button>`;
+ if(F.step===1)return `${steps}<h3>${T('اختر المحطة','Choose a station')}</h3><p class="sub">${T('المحطة التي تقف فيها الآن.','The station you are at now.')}</p>
+  <div class="opts">${S.stations.map(s=>{const out=S.rules.network&&!S.network.includes(s.id);return `<button class="opt" data-act="st:${s.id}" aria-pressed="${F.station===s.id}" ${out?'disabled':''}><b>${esc(N(s.name))}</b><small>${esc(N(s.area))} · <span class="num">${s.km}</span> ${T('كم','km')}${out?' · '+T('خارج شبكة الشركة','not in company network'):''}</small></button>`}).join('')}</div>
+  <button class="btn-p" data-act="next" ${F.station?'':'disabled'}>${T('متابعة','Continue')}</button>`;
+ if(F.step===2){const s=stn(F.station);
+  return `${steps}<h3>${T('اختر المضخة','Choose a pump')}</h3><p class="sub">${esc(N(s.name))} · ${T('رقم المضخة مكتوب عليها.','The number is shown on the pump.')}</p>
+  <div class="opts c4">${Array.from({length:s.pumps},(_,i)=>i+1).map(n=>{const p=s.id===MY?pumpOf(n):null,off=p&&(!p.on||!p.grades.includes(F.fuel));return `<button class="opt pump" data-act="pp:${n}" aria-pressed="${F.pump===n}" ${off?'disabled':''}>${n}${p&&!p.on?`<small>${T('متوقفة','Offline')}</small>`:off?`<small>${T('وقود مختلف','Other grade')}</small>`:''}</button>`}).join('')}</div>
+  <div class="row">${back}<button class="btn-p" data-act="next" ${F.pump?'':'disabled'}>${T('متابعة','Continue')}</button></div>`;}
+ if(F.step===3){const over=F.amount>cap,lock=S.rules.wrongFuel;
+  return `${steps}<h3>${T('حدّد المبلغ','Set the amount')}</h3><p class="sub">${esc(N(v.name))} · ${T('يُخصم من حساب الشركة','charged to the company account')}</p>
+  <div class="opts c3">${Object.keys(PRICES).map(k=>`<button class="opt" data-act="fu:${k}" aria-pressed="${F.fuel===k}" ${lock&&k!==v.fuel?'disabled':''}>${fuelTag(k)}<small class="num">${sar(PRICES[k])} / ${T('لتر','L')}</small></button>`).join('')}</div>
+  <div class="amount"><span class="num muted">${CUR()}</span><input id="amt" type="number" inputmode="numeric" min="10000" step="5000" value="${F.amount}" aria-label="${T('المبلغ','Amount')}"></div>
+  <div class="sub" id="calc" style="text-align:center">≈ <span class="num">${liters(F.amount,F.fuel).toFixed(1)}</span> ${T('لتر','litres')}</div>
+  <div class="opts c4">${[100000,200000,300000].map(a=>`<button class="opt" data-act="am:${a}" style="text-align:center"><b class="num">${short(a)}</b></button>`).join('')}<button class="opt" data-act="am:full" style="text-align:center"><b>${T('الحد الأقصى','Max')}</b></button></div>
+  <p class="sub" style="text-align:center;color:${over?'var(--rd)':'var(--muted)'}" id="capmsg">${capMsg(over,cap,why)}</p>
+  <div class="row">${back}<button class="btn-p" id="amtnext" data-act="next" ${over||F.amount<10000?'disabled':''}>${T('مراجعة','Review')}</button></div>`;}
+ if(F.step===4){const s=stn(F.station);
+  return `${steps}<h3>${T('تأكيد التعبئة','Confirm fill-up')}</h3><p class="sub">${T('يُعاد أي مبلغ غير مستخدم تلقائياً.','Any unused amount is returned automatically.')}</p>
+  <div class="deep sum" style="margin-bottom:14px">
+   <div><span>${T('المحطة','Station')}</span><span>${esc(N(s.name))}</span></div>
+   <div><span>${T('المضخة','Pump')}</span><span class="num">${F.pump}</span></div>
+   <div><span>${T('المركبة','Vehicle')}</span>${plate(v.plate)}</div>
+   <div><span>${T('الوقود','Fuel')}</span><span>${fuelTag(F.fuel)} · <span class="num">${liters(F.amount,F.fuel).toFixed(1)}</span> ${T('لتر','L')}</span></div>
+   ${S.tax.on?`<div><span>${T('ضريبة القيمة المضافة','VAT')} ${S.tax.rate}%</span><span class="num">${sar(vatOf(F.amount))}</span></div>`:''}
+   <div><span>${T('جهة الخصم','Charged to')}</span><span>${T('حساب الشركة','Company account')}</span></div>
+   <div><span>${S.tax.on?T('الإجمالي شامل الضريبة','Total incl. VAT'):T('الإجمالي','Total')}</span><span>${money(F.amount,'em')}</span></div>
+  </div>
+  <div class="row">${back}<button class="btn-p" data-act="confirm">${ic('finger')}${T('اعتماد','Authorize')}</button></div>`;}
+ return `<div class="success"><div class="tick">${ic('check',32)}</div><h3>${T('المضخة','Pump')} <span class="num">${F.pump}</span> ${T('جاهزة للتعبئة','is ready')}</h3>
+  <p class="sub">${T('قدّم هذا الرمز للعامل عند الطلب.','Give this code to the attendant if asked.')}</p><div class="code">${F.code}</div>
+  <p class="sub"><span class="num">${F.txid}</span> · ${T('تم اعتماد','Authorized')} ${curTxt(F.amount)}</p>
+  <button class="btn-p" data-act="close">${T('تم','Done')}</button></div>`;
+}
+function confirmPay(){
+ const F=S.flow,v=myVeh(),id='T-'+(90413+S.tx.length),code=String(1000+Math.floor(Math.random()*9000)),hm=nowHM();
+ F.code=code;F.txid=id;
+ S.tx.unshift({id,who:'driver',fleetId:v.id,station:F.station,pump:F.pump,fuel:F.fuel,amount:F.amount,status:'auth',when:W('الآن '+hm,'Now '+hm),code,src:'app'});
+ charge(v.id,F.amount);F.step=5;render();
+}
+
+/* ---------- FLEET ---------- */
+function fleetTotals(){const lim=S.fleet.reduce((a,f)=>a+limOf(f),0),used=S.fleet.reduce((a,f)=>a+f.used,0);
+ return {lim,used,pct:used/Math.max(1,lim)*100,litres:S.fleet.reduce((a,f)=>a+f.used/PRICES[f.fuel],0)}}
+const WEEKS=()=>{const {used}=fleetTotals();return [1230000,1590000,1470000,Math.max(0,Math.round(used-4290000))]};
+function tierStats(t){const vs=S.fleet.filter(f=>f.tier===t.id),budget=vs.reduce((a,f)=>a+limOf(f),0),spent=vs.reduce((a,f)=>a+f.used,0);
+ return {vs,budget,spent,remain:Math.max(0,budget-spent),pct:spent/Math.max(1,budget)*100,extra:vs.reduce((a,f)=>a+(f.extra||0),0)}}
+function fleetAlerts(){
+ const a=[];
+ pendingReqs().forEach(r=>{const d=drv(r.driver);a.push({c:'bl',i:'inbox',k:T('طلب جديد','New request'),t:d?N(d.name):'',d:r.type==='limit'?T(`يطلب زيادة الحد الشهري بمبلغ ${curTxt(r.amount)}.`,`Requests a monthly limit increase of ${curTxt(r.amount)}.`):T('يطلب إعادة تفعيل الحساب أو المركبة.','Requests reactivation of the account or vehicle.'),a:T('مراجعة الطلب','Review request'),act:'goreq'})});
+ S.drivers.filter(d=>!d.active).forEach(d=>a.push({c:'rd',i:'user',k:T('سائق موقوف','Driver suspended'),t:N(d.name),d:T('لا يمكن لهذا السائق استخدام تصريح الوقود حتى يُعاد تفعيله.','This driver cannot use the fuel pass until reactivated.'),a:T('إعادة التفعيل','Reactivate'),act:'denable:'+d.id}));
+ S.fleet.forEach(f=>{const p=f.used/Math.max(1,limOf(f)),pl=plateTxt(f.plate),nm=drvName(f),md=N(f.name);
+  if(!f.active)a.push({c:'rd',i:'lock',k:T('مركبة موقوفة','Vehicle suspended'),t:`${md} · ${pl}`,d:T(`لا يمكن لـ ${nm} التعبئة بهذه المركبة حتى يُعاد تفعيلها.`,`${nm} cannot fuel this vehicle until it is reactivated.`),a:T('إعادة التفعيل','Reactivate'),act:'reactivate:'+f.id});
+  else if(p>=.98)a.push({c:'rd',i:'gauge',k:T('استُنفد الحد','Limit reached'),t:`${md} · ${pl}`,d:T(`استُنفد الحد الشهري لـ ${nm}.`,`${nm} has used the full monthly limit.`),a:T('إضافة 300,000 ج.س','Add SDG 300,000'),act:'raise:'+f.id});
+  else if(p>=.85)a.push({c:'am',i:'gauge',k:T('قرب الحد','Near limit'),t:`${md} · ${pl}`,d:T(`المتبقي لـ ${nm} هذا الشهر ${curTxt(limOf(f)-f.used)}.`,`${nm} has ${curTxt(limOf(f)-f.used)} left this month.`),a:T('إضافة 300,000 ج.س','Add SDG 300,000'),act:'raise:'+f.id});
+  if(f.tag<15)a.push({c:'am',i:'battery',k:T('بطارية الشريحة منخفضة','Low tag battery'),t:`${md} · ${pl}`,d:T('انخفضت إشارة شريحة الوقود إلى أقل من 15%.','The fuel tag signal is below 15%.'),a:T('طلب شريحة بديلة','Order a replacement tag'),act:'toast:'+T('تم طلب شريحة بديلة','Replacement tag ordered')});
+ });
+ return a;
+}
+const alertCard=x=>`<div class="card" style="padding:14px"><div class="alertc"><span class="ico ${x.c}">${ic(x.i)}</span><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px"><b class="w">${esc(x.t)}</b><span class="tag ${x.c}">${x.k}</span></div><p>${x.d}</p><div style="margin-top:8px"><button class="link" data-act="${x.act}">${x.a}</button></div></div></div></div>`;
+function liveNow(){
+ const live=S.tx.filter(t=>t.status!=='done'&&t.fleetId&&fv(t.fleetId));
+ if(!live.length)return `<div class="empty" style="padding:12px">${T('لا توجد تعبئة جارية الآن.','No fill-ups in progress.')}</div>`;
+ return live.map(t=>{const f=fv(t.fleetId);const lit=t.status==='fueling'?liters(t.amount,t.fuel)*.62:0;return `<div class="live"><div class="hd"><div style="min-width:0"><b class="w">${esc(N(f.name))}</b> ${fuelTag(t.fuel)}<div class="muted" style="font-size:12px">${esc(N(stn(t.station).name))} · ${T('مضخة','Pump')} <span class="num">${t.pump}</span></div></div>${plate(f.plate)}</div>
+  <div class="vals"><div><span class="lbl">${T('اللترات','Litres')}</span><div><b>${lit.toFixed(1)}</b> <span class="cap">L</span></div></div><div><span class="lbl">${T('التكلفة','Cost')}</span><div><b>${sar(lit*PRICES[t.fuel])}</b><span class="cap">${CUR()}</span></div></div></div>
+  <div style="margin-top:8px">${statusPill(t)}</div></div>`}).join('<div style="height:8px"></div>');
+}
+function fleetDash(){
+ const {lim,used,pct}=fleetTotals(),al=fleetAlerts(),pr=pendingReqs();
+ return appbar(T('لوحة المتابعة','Dashboard'),T('أسطول النماء · الخرطوم','Al Namaa fleet · Khartoum'),`<button class="iconbtn" data-act="tab:requests" aria-label="${T('الطلبات','Requests')}">${ic('bell')}${pr.length?'<span class="badge-dot"></span>':''}</button>${avaBtn(T('ن','AN'))}`)+
+ `<div class="card hero h-bl"><div style="display:flex;justify-content:space-between;align-items:flex-start"><span class="lbl">${T('رصيد الحساب المسبق','Prepaid balance')}</span><span class="ico">${ic('wallet')}</span></div>
+  <div class="big">${sar(S.fleetBalance)}<span class="cap" style="font-size:15px">${CUR()}</span></div>
+  <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:6px"><span class="muted">${T('المصروف من حدود الشهر','Spent of monthly limits')}</span><span class="num">${pct.toFixed(0)}% · ${short(used)} / ${short(lim)}</span></div>${quota(used,lim)}
+  <div class="g3" style="margin-top:14px"><button class="btn-p" style="flex-direction:column;gap:2px;font-size:13px;min-height:64px" data-act="toast:${T('تم شحن 5,000,000 ج.س عبر بنكك','SDG 5,000,000 added via Bankak')}">${ic('plus')}${T('شحن','Top up')}</button><button class="btn-s" style="flex-direction:column;gap:2px;font-size:13px;min-height:64px" data-act="tab:requests">${ic('inbox')}${T('الطلبات','Requests')}${pr.length?` (${pr.length})`:''}</button><button class="btn-s" style="flex-direction:column;gap:2px;font-size:13px;min-height:64px" data-act="tab:rules">${ic('shield')}${T('القواعد','Rules')}</button></div></div>
+ ${pr.length?`<div class="card" style="border-color:var(--bl)"><div class="ch" style="margin-bottom:8px"><h3><span class="ico bl" style="width:32px;height:32px">${ic('inbox',18)}</span>${T('طلبات بانتظار الاعتماد','Requests awaiting approval')}</h3><span class="pill bl num">${pr.length}</span></div>${pr.slice(0,2).map(r=>{const d=drv(r.driver);return `<div class="li"><div class="t"><b>${esc(d?N(d.name):'')}</b><span>${N(REQTYPE[r.type])}${r.type==='limit'?` · ${curTxt(r.amount)}`:''}</span></div><button class="btn-sm b" data-act="tab:requests">${T('مراجعة','Review')}</button></div>`}).join('')}</div>`:''}
+ <div class="sec"><div class="lbl"><span>${T('ميزانيات الفئات','Tier budgets')}</span><button data-act="tab:rules">${T('التفاصيل','Details')}</button></div><div class="card">${S.tiers.map(t=>{const s=tierStats(t);return `<div class="li"><span class="ico ${t.c}">${ic(t.icon)}</span><div class="t"><b>${esc(N(t.name))}</b><span><span class="num">${s.vs.length}</span> ${T('مركبات','vehicles')} · ${T('المتبقي','left')} ${short(s.remain)}</span>${quota(s.spent,s.budget)}</div></div>`}).join('')}</div></div>
+ <div class="card"><div class="ch"><h3>${T('التعبئة الجارية','Live fill-ups')}</h3><span class="pill cy">${ic('rfid',13)}RFID</span></div>${liveNow()}</div>
+ <div class="sec"><div class="lbl"><span>${T('تنبيهات تحتاج إجراء','Alerts needing action')}</span><span class="pill am num">${al.length}</span></div><div class="stack">${al.slice(0,3).map(alertCard).join('')}</div></div>
+ <div class="card"><div class="ch"><h3>${T('أسعار الوقود','Fuel prices')} <span class="muted" style="font-size:12px;font-weight:500">${T('ج.س/لتر','SDG/L')}</span></h3><span class="muted" style="font-size:11px">${T('وزارة الطاقة والنفط','Ministry of Energy and Oil')}</span></div>
+  <div class="g3">${Object.entries(PRICES).map(([k,p],i)=>`<div class="inset" style="text-align:center"><span class="muted" style="font-size:12px">${N(FUELFULL[k])}</span><b class="num ${['em','vi','or'][i]}" style="display:block;font-size:19px;margin-top:4px">${sar(p)}</b></div>`).join('')}</div></div>`;
+}
+function fleetTags(){
+ return appbar(T('المركبات والشرائح','Vehicles & tags'))+`<div class="stack">${S.fleet.map(f=>{const t=tierOf(f);return `<div class="card" style="${f.active?'':'border-color:var(--rd)'}">
+  <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0"><b class="w" style="font-family:var(--head);font-size:17px;display:block">${esc(N(f.name))}</b><span class="muted" style="font-size:12px">${esc(drvName(f))}</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${plate(f.plate)}${fuelTag(f.fuel)}</div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap">${t?`<span class="pill ${t.c}">${ic(t.icon,13)}${esc(N(t.name))}</span>`:`<span class="pill">${T('بدون فئة','No tier')}</span>`}${!f.active?`<span class="pill rd">${ic('lock',13)}${T('موقوفة','Suspended')}</span>`:f.tag<15?`<span class="pill am">${ic('battery',13)}<span class="num">${f.tag}%</span></span>`:`<span class="pill em"><span class="dot pulse"></span>RFID <span class="num">${f.tag}%</span></span>`}</div>
+  <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12px"><span class="muted">${T('المصروف / الحد','Spent / limit')}${f.extra?` · <span class="em">${plus(f.extra)}</span>`:''}</span><span class="num">${pair(f.used,limOf(f))}</span></div>
+  ${quota(f.used,limOf(f))}</div>`}).join('')}</div>`;
+}
+function rulesBlock(sfx){
+ const r=S.rules;
+ const row=(k,i,c,ttl,sub,tag)=>`<div class="rule"><span class="ico ${c}">${ic(i)}</span><div class="t"><b>${ttl}${tag?` <span class="pill or" style="font-size:10px">${tag}</span>`:''}</b><span>${sub}</span></div><input type="checkbox" class="toggle" id="rule-${k}${sfx}" data-rule="${k}" ${r[k]?'checked':''} aria-label="${ttl}"></div>`;
+ return row('network','grid','or',T('التعبئة من محطات الشبكة فقط','Network stations only'),T('محطة النيل الأزرق ووقود المقرن','Blue Nile Station and Al Mogran Fuel'),T('صارم','Strict'))+
+  row('wrongFuel','nozzle','rd',T('منع نوع الوقود غير المطابق','Block mismatched fuel'),T('يُصرف نوع الوقود المسجّل للمركبة فقط','Only the vehicle\'s registered grade is dispensed'))+
+  row('odo','gauge','am',T('قراءة العدّاد قبل التعبئة','Odometer before fueling'),T('يبقى التصريح مقفلاً حتى يسجّل السائق القراءة','The pass stays locked until the driver records the reading'))+
+  row('antiSiphon','shield','vi',T('الحماية من السحب','Anti-siphoning'),T('تعبئة واحدة كحد أقصى كل 4 ساعات لكل مركبة','At most one fill-up every 4 hours per vehicle'))+
+  row('geofence','pin','cy',T('التحقق من الموقع','Location check'),T('يُقفل المسدس إذا كانت المركبة على بُعد أكثر من 50 متراً','Locks the nozzle if the vehicle is more than 50 m away'))+
+  `<div class="rule"><span class="ico bl">${ic('wallet')}</span><div class="t"><b>${T('الحد الأقصى للتعبئة الواحدة','Maximum per fill-up')}</b><span>${T('بالجنيه السوداني','In Sudanese pounds')}</span></div><input class="tinput" type="number" id="maxamt${sfx}" data-maxamt min="10000" step="10000" value="${r.maxFillAmt}" aria-label="${T('المبلغ','Amount')}"><input type="checkbox" class="toggle" id="rule-maxFill${sfx}" data-rule="maxFill" ${r.maxFill?'checked':''} aria-label="${T('الحد الأقصى للتعبئة الواحدة','Maximum per fill-up')}"></div>`+
+  row('hours','clock','em',T('ساعات التعبئة','Fueling hours'),T('حسب نافذة كل فئة','Per each tier\'s time window'));
+}
+function tierCard(t,editable){const s=tierStats(t);
+ return `<div class="card"><div class="tierhead"><div style="display:flex;gap:10px;min-width:0"><span class="ico ${t.c}">${ic(t.icon)}</span><div style="min-width:0"><b class="w" style="font-family:var(--head);font-size:16px;display:block">${esc(N(t.name))}</b><span class="muted" style="font-size:12px"><span class="num">${s.vs.length}</span> ${T('مركبات','vehicles')} · ${short(t.budget)} ${CUR()} ${T('لكل مركبة شهرياً','per vehicle / month')}</span></div></div>${editable?`<button class="btn-sm b" data-act="modal:tier:${t.id}">${ic('edit',15)}${T('تعديل','Edit')}</button>`:''}</div>
+ <div class="kv"><div><span>${T('إجمالي الميزانية','Total budget')}</span><b>${short(s.budget)}</b></div><div><span>${T('المصروف','Spent')}</span><b class="${quotaCls(s.pct)||'w'}">${short(s.spent)}</b></div><div><span>${T('المتبقي','Remaining')}</span><b class="em">${short(s.remain)}</b></div></div>
+ ${quota(s.spent,s.budget)}
+ <p class="hint" style="margin:8px 0 0">${T('الساعات','Hours')} <span class="num">${esc(t.win)}</span> · ${T('الحد اليومي','Daily cap')} <span class="num">${t.dailyL}</span> ${T('لتر','L')}${s.extra?` · ${T('زيادات معتمدة','Approved increases')} <span class="num em">${short(s.extra)}</span>`:''}</p>
+ <div style="margin-top:10px">${s.vs.length?s.vs.map(f=>`<div class="tierrow"><span class="ava sm" style="background:var(--${t.c});width:32px;height:32px;font-size:11px">${esc(f.driver&&drv(f.driver)?initials(drv(f.driver).name):'—')}</span><div class="t"><b>${esc(drvName(f))}${f.driver&&drv(f.driver)&&!drv(f.driver).active?` <span class="pill rd" style="font-size:10px">${T('موقوف','Suspended')}</span>`:''}</b><span>${esc(N(f.name))} · ${plateTxt(f.plate)}${f.custom!=null?` · ${T('حد مخصص','custom limit')}`:''}</span></div><div class="r"><span class="num">${pair(f.used,limOf(f))}</span>${quota(f.used,limOf(f))}</div></div>`).join('')
+  :`<div class="empty" style="padding:10px">${T('لا توجد مركبات في هذه الفئة.','No vehicles in this tier.')}</div>`}</div></div>`}
+function secLogCard(e){return `<div class="card" style="padding:14px"><div class="alertc"><span class="ico ${e.c}">${ic(e.c==='rd'?'siren':'alert')}</span><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px"><b class="${e.c}" style="font-size:13px">${N(e.t)}</b><span class="muted" style="font-size:12px">${N(e.ago)}</span></div><p>${esc(N(e.d))}</p><span class="pill num" style="margin-top:6px">${esc(e.ref)}</span></div></div></div>`}
+function fleetRules(){
+ const on=Object.values(S.rules).filter(v=>v===true).length,all=Object.values(S.rules).filter(v=>typeof v==='boolean').length;
+ return appbar(T('قواعد الوقود','Fuel rules'),T('أسطول النماء','Al Namaa fleet'))+
+ `<div class="card hero h-vi"><span class="lbl" style="display:flex;gap:6px;align-items:center"><span class="dot"></span>${T('الرقابة مفعّلة','Controls active')}</span>
+  <h2 style="margin:8px 0 6px;font-size:20px">${T('سياسات التعبئة ومكافحة الاحتيال','Fueling policies and fraud controls')}</h2>
+  <div class="g3" style="margin-top:12px"><div><span class="lbl">${T('القواعد المفعّلة','Rules on')}</span><div class="num" style="font-weight:700">${on}/${all}</div></div><div><span class="lbl">${T('محاولات مُنعت','Blocked')}</span><div class="num" style="font-weight:700">${S.secLog.length}</div></div><div><span class="lbl">${T('ميزانية الشهر','Month budget')}</span><div class="num" style="font-weight:700">${short(fleetTotals().lim)}</div></div></div></div>
+ <div class="sec"><div class="lbl"><span>${T('فئات المركبات وميزانياتها','Vehicle tiers and budgets')}</span></div><div class="stack">${S.tiers.map(t=>tierCard(t,false)).join('')}</div></div>
+ <div class="sec"><div class="lbl"><span>${T('القواعد العامة','General rules')}</span></div><div class="card">${rulesBlock('-m')}</div></div>
+ <div class="sec"><div class="lbl"><span class="rd" style="display:flex;gap:6px;align-items:center"><span class="dot"></span>${T('سجل الأمان','Security log')}</span></div><div class="stack">${S.secLog.map(secLogCard).join('')}</div></div>`;
+}
+function reqCardFleet(r){
+ const d=drv(r.driver),f=r.veh?fv(r.veh):null,t=tierOf(f),pend=r.status==='pending';
+ return `<div class="card req"><div class="hd"><div style="display:flex;gap:10px;min-width:0"><span class="ava sm" style="background:var(--${r.type==='limit'?'bl':'vi'})">${esc(d?initials(d.name):'')}</span><div style="min-width:0"><b class="w" style="display:block">${esc(d?N(d.name):'')}</b><span class="muted num" style="font-size:12px">${r.id} · ${N(r.when)}</span></div></div>${reqPill(r)}</div>
+  <div class="meta"><span class="pill ${r.type==='limit'?'bl':'vi'}">${ic(r.type==='limit'?'up':'unlock',13)}${N(REQTYPE[r.type])}</span>${r.type==='limit'?`<span class="pill"><span class="num">${sar(r.amount)}</span> ${CUR()}</span>`:''}<span class="pill">${N(REASON[r.reason])}</span></div>
+  ${f?`<div class="deep" style="font-size:12px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><span>${plate(f.plate)} <span class="muted">${esc(N(f.name))}${t?' · '+esc(N(t.name)):''}</span></span><span class="num">${pair(f.used,limOf(f))}</span></div>`:''}
+  ${r.note&&N(r.note)?`<div class="quote">${esc(N(r.note))}</div>`:''}
+  ${pend?`<div class="acts">${r.type==='limit'?`<div class="fieldw"><label for="ra-${r.id}" class="hint">${T('المبلغ المعتمد','Approved amount')} (${CUR()})</label><input class="field num" id="ra-${r.id}" type="number" min="10000" step="10000" value="${r.amount}"></div>`:''}<div class="fieldw"><label for="rn-${r.id}" class="hint">${T('ملاحظة للسائق (اختياري)','Note to driver (optional)')}</label><input class="field" id="rn-${r.id}" maxlength="140"></div></div>
+   <div class="acts"><button class="btn-ok" data-act="rqok:${r.id}">${ic('check',16)}${T('اعتماد','Approve')}</button><button class="btn-no" data-act="rqno:${r.id}">${ic('x',16)}${T('رفض','Decline')}</button></div>`
+  :`<div class="hint">${r.status==='approved'?(r.type==='limit'?T(`اعتُمد ${curTxt(r.approved)}`,`${curTxt(r.approved)} approved`):T('أُعيد التفعيل','Reactivated')):T('مرفوض','Declined')} · ${N(r.decided)}${r.reply&&N(r.reply)?' · '+esc(N(r.reply)):''}</div>`}
+ </div>`;
+}
+function reqFilterBar(){const f=S.reqFilter,c=k=>S.requests.filter(r=>k==='all'||r.status===k).length;
+ return `<div class="chips" style="margin-bottom:12px">${[['pending',T('قيد المراجعة','Under review')],['approved',T('معتمدة','Approved')],['rejected',T('مرفوضة','Declined')],['all',T('الكل','All')]].map(([k,l])=>`<button class="chipsel" style="${f===k?'background:var(--bl);border-color:var(--bl);color:#fff':''}" data-act="rqf:${k}" aria-pressed="${f===k}">${l} <span class="num">${c(k)}</span></button>`).join('')}</div>`}
+const filteredReqs=()=>S.requests.filter(r=>S.reqFilter==='all'||r.status===S.reqFilter);
+function fleetRequests(){
+ const rs=filteredReqs();
+ return appbar(T('طلبات السائقين','Driver requests'),T('أسطول النماء','Al Namaa fleet'))+reqFilterBar()+
+ `<div class="stack">${rs.map(reqCardFleet).join('')||`<div class="card empty">${T('لا توجد طلبات في هذه القائمة.','No requests in this list.')}</div>`}</div>`;
+}
+function txSummary(){const f=S.tx.filter(t=>t.fleetId&&t.status==='done');const tot=f.reduce((a,t)=>a+t.amount,0);return {tot,vat:vatOf(tot),lit:f.reduce((a,t)=>a+liters(t.amount,t.fuel),0),n:f.length}}
+function eventCard(t){const f=t.fleetId?fv(t.fleetId):null;return `<div class="card" style="padding:14px">
+ <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="muted num" style="font-size:11px;font-weight:700">${N(t.when)} · ${T('مضخة','Pump')} ${t.pump}</span>${statusPill(t)}</div>
+ <div style="display:flex;justify-content:space-between;gap:10px;margin-top:8px"><div style="min-width:0"><b class="w" style="font-family:var(--head);font-size:16px;display:block">${esc(N(stn(t.station).name))}</b><span class="muted" style="font-size:12px">${esc(drvName(f))}</span></div>
+ <div style="text-align:end;flex-shrink:0"><b class="num w" style="font-size:17px">${sar(t.amount)}</b><span class="cap">${CUR()}</span>${S.tax.on?`<div class="vi num" style="font-size:12px">${T('الضريبة','VAT')} ${sar(vatOf(t.amount))}</div>`:''}</div></div>
+ <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">${plate(txPlate(t))}${fuelTag(t.fuel)}<span class="num muted" style="font-size:12px">${liters(t.amount,t.fuel).toFixed(1)} L</span></div></div>`}
+function fleetTx(){
+ const v=txSummary(),rows=S.tx.filter(t=>t.fleetId&&fv(t.fleetId));
+ return appbar(T('العمليات','Transactions'),T('أسطول النماء','Al Namaa fleet'))+
+ `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="lbl">${T('ملخص أكتوبر','October summary')}</span>${S.tax.on?`<span class="pill vi">${T('الضريبة','VAT')} ${S.tax.rate}%</span>`:`<span class="pill">${T('الضريبة غير مفعّلة','VAT off')}</span>`}</div>
+  <div class="g2" style="margin-top:12px"><div class="inset"><span class="muted" style="font-size:12px">${T('المصروف','Spent')}</span><b class="num w" style="display:block;font-size:18px;margin-top:4px">${sar(v.tot)}</b><span class="cap" style="margin:0">${CUR()}</span></div>
+  ${S.tax.on?`<div class="inset"><span class="muted" style="font-size:12px">${T('ضريبة المدخلات','Input VAT')}</span><b class="num vi" style="display:block;font-size:18px;margin-top:4px">${sar(v.vat)}</b><span class="cap" style="margin:0">${CUR()}</span></div>`
+   :`<div class="inset"><span class="muted" style="font-size:12px">${T('الإيصالات','Receipts')}</span><b class="num w" style="display:block;font-size:18px;margin-top:4px">${v.n}</b></div>`}</div>
+  <button class="btn-s" style="margin-top:12px;justify-content:space-between" data-act="toast:${T('تم تنزيل الكشف','Statement downloaded')}"><span style="display:flex;gap:8px;align-items:center">${ic('download')}${T('تنزيل كشف الشهر','Download monthly statement')}</span><span class="num muted" style="font-size:12px">PDF · XLSX</span></button></div>
+ <div class="sec"><div class="lbl"><span>${T('سجل العمليات','Transaction log')}</span><span class="pill num">${rows.length}</span></div><div class="stack">${rows.map(eventCard).join('')}</div></div>`;
+}
+
+/* ---------- STATION (mobile attendant) ---------- */
+const stTx=()=>S.tx.filter(t=>t.station===MY);
+function scanInfo(){
+ const s=S.scan;if(!s)return null;const f=fv(s.fid);if(!f)return null;
+ const {cap}=capFor(f),d=f.driver?drv(f.driver):null;
+ return {f,plate:f.plate,name:f.name,owner:N(ORG()),fuel:f.fuel,cap,src:s.src,lock:S.rules.wrongFuel,active:f.active&&(!d||d.active),why:!f.active?'veh':(d&&!d.active)?'driver':'',token:s.token,drv:d};
+}
+function stationScan(){
+ const att=S.staff[1],I=scanInfo(),sc=S.scan,disp=stTx().filter(t=>t.status==='fueling');
+ let body='';
+ if(I){
+  const amt=sc.mode==='lit'?sc.lit*PRICES[I.fuel]:sc.sar,over=amt>I.cap,p=sc.pump?pumpOf(sc.pump):null;
+  const selSt='border-color:var(--or);box-shadow:inset 0 0 0 1px var(--or);background:var(--or-soft)';
+  body=`<div class="card sel" style="margin-top:12px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0"><b class="w" style="font-family:var(--head);font-size:18px;display:block">${esc(N(I.name))}</b><span class="bl" style="font-size:12px">${esc(I.owner)}${I.drv?' · '+esc(N(I.drv.name)):''}</span></div>${plate(I.plate)}</div>
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px">${I.lock?`<span class="btn-c" style="min-height:34px;font-size:12px">${ic('lock',15)}${N(FUEL[I.fuel])} ${T('فقط','only')}</span>`:fuelTag(I.fuel)}<span class="muted" style="font-size:12px;text-align:end">${I.src==='qr'?`${T('الرمز','Token')} <span class="num vi">${I.token}</span>`:`${T('شريحة RFID','RFID tag')} · <span class="em">${T('موثّقة','verified')}</span>`}</span></div>
+   ${I.active?'':`<div class="note rd" style="margin-top:10px">${ic('lock',16)}${I.why==='driver'?T('حساب السائق موقوف. لا يمكن الصرف.','The driver account is suspended. Dispensing is blocked.'):T('المركبة موقوفة. لا يمكن الصرف.','The vehicle is suspended. Dispensing is blocked.')}</div>`}
+   <div class="g3" style="margin-top:12px;text-align:center"><div class="deep" style="padding:10px"><span class="em">${ic('wallet',18)}</span><div class="muted" style="font-size:11px">${T('المتاح','Available')}</div><b class="num em" style="font-size:12px">${short(I.cap)}</b></div><div class="deep" style="padding:10px"><span class="cy">${ic('pin',18)}</span><div class="muted" style="font-size:11px">${T('الموقع','Location')}</div><b class="cy" style="font-size:12px">${T('مطابق','Matched')}</b></div><div class="deep" style="padding:10px"><span class="vi">${ic('shield',18)}</span><div class="muted" style="font-size:11px">${T('القواعد','Rules')}</div><b class="vi" style="font-size:12px">${I.active?T('مستوفاة','Passed'):T('غير مستوفاة','Failed')}</b></div></div></div>
+  <div class="card"><div class="ch"><h3><span class="ico or" style="width:32px;height:32px">${ic('nozzle',18)}</span>${T('بيانات الصرف','Dispensing details')}</h3><span class="num w" style="font-size:13px">${sar(PRICES[I.fuel])} ${T('ج.س/لتر','SDG/L')}</span></div>
+   <span class="lbl">${T('المسدس','Nozzle')}</span><div class="chips" style="margin:8px 0 14px">${S.pumps.map(pp=>`<button class="chipsel num" data-act="spump:${pp.n}" aria-pressed="${sc.pump===pp.n}" ${!pp.on||!pp.grades.includes(I.fuel)||stTx().some(t=>t.pump===pp.n&&t.status!=='done')?'disabled':''}>${String(pp.n).padStart(2,'0')}</button>`).join('')}</div>
+   <span class="lbl">${T('الكمية','Quantity')}</span>
+   <div class="g2" style="margin-top:8px"><button class="opt" style="${sc.mode==='lit'?selSt:''}" data-act="smode:lit"><span class="${sc.mode==='lit'?'or':'muted'}" style="font-size:12px;font-weight:600">${T('باللتر','By litres')}</span><div><b class="num" style="font-size:22px">${sc.lit}</b> <span class="muted">L</span></div><small>≈ ${curTxt(sc.lit*PRICES[I.fuel])}</small></button>
+   <button class="opt" style="${sc.mode==='sar'?selSt:''}" data-act="smode:sar"><span class="${sc.mode==='sar'?'or':'muted'}" style="font-size:12px;font-weight:600">${T('بالمبلغ','By amount')}</span><div><b class="num" style="font-size:20px">${short(sc.sar)}</b> <span class="muted">${CUR()}</span></div><small>≈ <span class="num">${(sc.sar/PRICES[I.fuel]).toFixed(1)}</span> L</small></button></div>
+   <div class="row" style="margin-top:8px">${(sc.mode==='lit'?[20,40,60]:[100000,200000,300000]).map(v=>`<button class="btn-sm" data-act="sval:${v}" style="justify-content:center">${sc.mode==='lit'?v+' L':short(v)}</button>`).join('')}</div>
+   ${p?`<p class="hint" style="margin:10px 0 0">${T('المسدس','Nozzle')} ${p.n} · <span class="num">${p.flow}</span> ${T('لتر/دقيقة','L/min')}</p>`:''}
+   ${over?`<div class="note am" style="margin-top:10px">${ic('gauge',16)}${T(`الكمية تتجاوز المتاح لهذه المركبة (${curTxt(I.cap)}).`,`The quantity exceeds this vehicle's available ${curTxt(I.cap)}.`)}</div>`:''}
+   <button class="btn-p" style="margin-top:14px;min-height:56px;font-size:17px;background:var(--or)" data-act="dispense" ${!I.active||over||!sc.pump?'disabled':''}>${ic('power')}${T('بدء الصرف','Start dispensing')}</button>
+   <button class="btn-s" style="margin-top:8px" data-act="sclear">${T('إلغاء','Cancel')}</button></div>`;
+ }
+ return appbar(T('ماسح المضخة','Pump scanner'),'',avaBtn(initials(att.name)))+
+ `<div class="card hero h-or"><div style="display:flex;gap:12px;align-items:center"><span class="ico">${ic('pump')}</span><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px"><b style="font-family:var(--head);font-size:17px">${esc(N(stn(MY).name))}</b><span class="pill">${T('الوردية','Shift')} ${att.shift}</span></div><span class="muted" style="font-size:12px">${esc(N(stn(MY).area))} · <span class="num">${shiftName(att.shift).slice(4)}</span></span></div></div>
+  <div class="deep" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px"><span>${esc(N(att.name))} <span class="num">(${esc(att.code)})</span></span><span style="font-size:11px;font-weight:700;display:flex;gap:5px;align-items:center"><span class="dot"></span>${T('متصل','Online')}</span></div></div>
+ ${disp.length?`<div class="card">${disp.map(t=>`<div class="live" style="border-color:var(--cy)"><div class="hd"><b class="w">${T('مضخة','Pump')} <span class="num">${t.pump}</span> · ${plateTxt(txPlate(t))}</b>${statusPill(t)}</div><div class="vals"><div><span class="lbl">${T('المبلغ المعتمد','Authorized amount')}</span><div><b>${sar(t.amount)}</b><span class="cap">${CUR()}</span></div></div></div><button class="btn-p" style="margin-top:10px" data-act="finish:${t.id}">${ic('check')}${T('إنهاء التعبئة وإصدار الإيصال','Finish and issue receipt')}</button></div>`).join('<div style="height:8px"></div>')}</div>`:''}
+ <div class="card"><div class="ch"><h3><span class="ico cy" style="width:32px;height:32px">${ic('scan',18)}</span>${T('التعرّف على المركبة','Identify the vehicle')}</h3>${I?`<span class="pill em"><span class="dot"></span>${T('تم التعرّف','Identified')}</span>`:''}</div>
+  <div class="g2"><button class="inset" style="text-align:center;padding:16px 10px;${I&&I.src==='qr'?'box-shadow:0 0 0 2px var(--vi)':''}" data-act="scanqr"><span class="ico vi" style="margin:0 auto 8px">${ic('qr')}</span><b class="w" style="display:block;font-size:14px">${T('مسح رمز السائق','Scan driver code')}</b><span class="muted" style="font-size:11px">${T('من تطبيق بترو','From the Petro app')}</span></button>
+  <button class="inset" style="text-align:center;padding:16px 10px;${I&&I.src==='rfid'?'box-shadow:0 0 0 2px var(--cy)':''}" data-act="scanrfid"><span class="ico cy" style="margin:0 auto 8px">${ic('rfid')}</span><b class="w" style="display:block;font-size:14px">${T('قراءة الشريحة','Read the tag')}</b><span class="muted" style="font-size:11px">${T('قوة الإشارة 98%','Signal 98%')}</span></button></div></div>
+ ${body}`;
+}
+function stationQueue(){
+ const pend=stTx().filter(t=>t.status==='auth');
+ return appbar(T('عمليات التطبيق','App authorizations'))+
+ `<div class="card"><div class="ch"><h3>${T('بانتظار التشغيل','Waiting to start')} <span class="pill am num">${pend.length}</span></h3></div>
+ ${pend.length?pend.map(t=>`<div class="live" style="margin-bottom:8px"><div class="hd"><b class="w">${T('مضخة','Pump')} <span class="num">${t.pump}</span></b>${statusPill(t)}</div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b class="num em" style="font-size:20px">${sar(t.amount)}</b><span class="cap">${CUR()}</span><div class="muted" style="font-size:12px">${plateTxt(txPlate(t))} · ${N(FUEL[t.fuel])} · ${T('الرمز','code')} <span class="num w">${t.code}</span></div></div><button class="btn-sm p" data-act="start:${t.id}">${ic('power',15)}${T('تشغيل','Start')}</button></div></div>`).join('')
+  :`<div class="empty">${T('لا توجد عمليات بانتظار التشغيل.','No authorizations waiting.')}</div>`}</div>
+ <div class="card"><div class="ch"><h3><span class="ico vi" style="width:32px;height:32px">${ic('key',18)}</span>${T('التشغيل بالرمز','Start with a code')}</h3></div><p class="muted" style="margin:0;font-size:13px">${T('أدخل الرمز المكوّن من 4 أرقام الظاهر في تطبيق السائق.','Enter the 4-digit code shown in the driver\'s app.')}</p>
+  <div class="code">${(S.keyCode+'····').slice(0,4)}</div><div class="keypad">${[1,2,3,4,5,6,7,8,9,'C',0,'OK'].map(n=>`<button data-act="key:${n}" ${n==='OK'?'style="background:var(--vi);color:#fff;border-color:var(--vi)"':''}>${n==='OK'?T('تأكيد','OK'):n==='C'?T('مسح','Clear'):n}</button>`).join('')}</div></div>`;
+}
+function pumpState(n){const p=pumpOf(n);if(!p.on)return 'off';return stTx().some(t=>t.pump===n&&t.status!=='done')?'busy':'free'}
+const pumpLbl=s=>s==='off'?T('متوقفة','Offline'):s==='busy'?T('قيد الاستخدام','In use'):T('متاحة','Available');
+function shiftStats(){const d=stTx().filter(t=>t.status==='done');const sales=d.reduce((a,t)=>a+t.amount,0);return {d,sales,lit:d.reduce((a,t)=>a+liters(t.amount,t.fuel),0),vat:vatOf(sales)}}
+function stationShift(){
+ const s=shiftStats();
+ return appbar(T('ملخص الوردية','Shift summary'))+
+ `<div class="g2"><div class="card"><span class="lbl">${T('اللترات','Litres')}</span><div class="big cy" style="font-size:26px">${s.lit.toFixed(0)}<span class="cap">L</span></div><span class="muted" style="font-size:12px"><span class="num">${s.d.length}</span> ${T('عملية','fill-ups')}</span></div>
+ <div class="card"><span class="lbl">${T('المبيعات','Sales')}</span><div class="big or" style="font-size:22px">${short(s.sales)}<span class="cap">${CUR()}</span></div>${S.tax.on?`<span class="vi num" style="font-size:12px">${T('الضريبة','VAT')} ${sar(s.vat)}</span>`:''}</div></div>
+ <div class="card"><div class="ch"><h3>${T('حالة المضخات','Pump status')}</h3></div><div class="g3" style="grid-template-columns:repeat(4,1fr)">${S.pumps.map(p=>{const st=pumpState(p.n);return `<div class="inset" style="text-align:center;padding:10px 4px;${st==='off'?'opacity:.45':''}"><b class="num w" style="font-size:18px">${String(p.n).padStart(2,'0')}</b><div style="font-size:10px;font-weight:700" class="${st==='busy'?'cy':st==='off'?'rd':'em'}">${pumpLbl(st)}</div></div>`}).join('')}</div></div>
+ <div class="card"><div class="ch"><h3>${T('آخر العمليات','Latest fill-ups')}</h3></div>${s.d.slice(0,4).map(t=>`<div class="li"><span class="ico or">${ic('pump')}</span><div class="t"><b>${plateTxt(txPlate(t))} · ${T('مضخة','Pump')} <span class="num">${t.pump}</span></b><span>${N(t.when)} · ${N(FUEL[t.fuel])}</span></div><div class="r"><b class="num w">${sar(t.amount)}</b></div></div>`).join('')}</div>
+ <button class="btn-s" style="margin-top:12px;justify-content:space-between" data-act="toast:${T('تم إصدار تقرير الوردية','Shift report issued')}"><span style="display:flex;gap:8px;align-items:center">${ic('receipt')}${T('إصدار تقرير الوردية','Issue shift report')}</span>${ic('chev',16)}</button>`;
+}
+
+/* ---------- WEB ADMIN ---------- */
+const WNAV=()=>({
+ fleet:[['overview',T('نظرة عامة','Overview'),'dash'],['requests',T('طلبات السائقين','Driver requests'),'inbox'],['vehicles',T('المركبات','Vehicles'),'truck'],['drivers',T('السائقون','Drivers'),'users'],['tiers',T('الفئات والميزانيات','Tiers & budgets'),'layers'],['rules',T('قواعد الوقود','Fuel rules'),'shield'],['tx',T('العمليات','Transactions'),'receipt'],['alerts',T('التنبيهات','Alerts'),'bell'],['settings',T('الإعدادات والضريبة','Settings & VAT'),'cog']],
+ station:[['overview',T('نظرة عامة','Overview'),'dash'],['pumps',T('المضخات','Pumps'),'pump'],['tx',T('العمليات','Transactions'),'receipt'],['staff',T('الموظفون والورديات','Staff & shifts'),'users'],['settle',T('التسويات','Settlements'),'bank'],['settings',T('الإعدادات والضريبة','Settings & VAT'),'cog']]
+});
+function webShell(){
+ const p=S.portal,t=S.wtab[p];
+ const pending=stTx().filter(x=>x.status!=='done').length,alerts=fleetAlerts().length,pr=pendingReqs().length;
+ const body={fleet:{overview:wFleetOverview,requests:wFleetRequests,vehicles:wFleetVehicles,drivers:wFleetDrivers,tiers:wFleetTiers,rules:wFleetRules,tx:wFleetTx,alerts:wFleetAlerts,settings:wSettings},
+  station:{overview:wStOverview,pumps:wStPumps,tx:wStTx,staff:wStStaff,settle:wStSettle,settings:wSettings}}[p][t]();
+ const cnt=k=>p==='fleet'&&k==='alerts'&&alerts?`<span class="cnt">${alerts}</span>`:p==='fleet'&&k==='requests'&&pr?`<span class="cnt">${pr}</span>`:p==='station'&&k==='overview'&&pending?`<span class="cnt">${pending}</span>`:'';
+ return `<div class="admin" data-r="${p}">
+  <aside class="sidebar">
+   <div class="org"><span class="ava sm">${p==='fleet'?T('ن','AN'):T('ن ز','BN')}</span><div style="min-width:0"><b>${p==='fleet'?esc(N(ORG())):esc(N(stn(MY).name))}</b><span>${p==='fleet'?T(`حساب أسطول · ${S.fleet.length} مركبات`,`Fleet account · ${S.fleet.length} vehicles`):T(`محطة شريكة · ${S.pumps.length} مضخات`,`Partner station · ${S.pumps.length} pumps`)}</span></div></div>
+   <div class="portal" role="group" aria-label="${T('البوابة','Portal')}"><button data-act="portal:fleet" aria-pressed="${p==='fleet'}" style="${p==='fleet'?'background:var(--bl)':''}">${T('إدارة الأسطول','Fleet admin')}</button><button data-act="portal:station" aria-pressed="${p==='station'}" style="${p==='station'?'background:var(--or)':''}">${T('إدارة المحطة','Station admin')}</button></div>
+   <nav class="menu">${WNAV()[p].map(([k,l,i])=>`<button data-act="wtab:${k}" aria-current="${k===t}">${ic(i)}${l}${cnt(k)}</button>`).join('')}</nav>
+   <div class="side-foot">${T('تنعكس كل التغييرات فوراً على تطبيقات السائقين والعاملين.','All changes apply instantly to the drivers\' and attendants\' apps.')}</div>
+  </aside>
+  <section class="main">${body}</section>
+ </div>`;
+}
+const ph=(h,p,acts='')=>`<div class="ph"><div><h1>${h}</h1>${p?`<p>${p}</p>`:''}</div>${acts?`<div class="acts">${acts}</div>`:''}</div>`;
+const wk=(l,v,e,c,i)=>`<div class="card"><div class="top"><span class="lbl">${l}</span><span class="ico ${c}">${ic(i,17)}</span></div><b>${v}</b><em>${e}</em></div>`;
+const editBtn=(type,id)=>`<button class="btn-sm b" data-act="modal:${type}:${id}">${ic('edit',15)}${T('تعديل','Edit')}</button>`;
+function fleetTxTable(rows){
+ if(!rows.length)return `<div class="empty">${T('لا توجد عمليات مطابقة.','No matching transactions.')}</div>`;
+ return `<div class="tbl-wrap"><table><thead><tr><th>${T('الإيصال','Receipt')}</th><th>${T('الوقت','Time')}</th><th>${T('المركبة','Vehicle')}</th><th>${T('السائق','Driver')}</th><th>${T('المحطة','Station')}</th><th>${T('الوقود','Fuel')}</th><th>${T('اللترات','Litres')}</th><th>${T('المبلغ','Amount')}</th>${S.tax.on?`<th>${T('الضريبة','VAT')} ${S.tax.rate}%</th>`:''}<th>${T('الحالة','Status')}</th></tr></thead><tbody>
+ ${rows.map(t=>{const f=fv(t.fleetId);return `<tr><td class="num">${t.id}</td><td class="mut">${N(t.when)}</td><td>${plate(txPlate(t))}</td><td>${esc(drvName(f))}</td><td>${esc(N(stn(t.station).name))} · <span class="num">${t.pump}</span></td><td>${fuelTag(t.fuel)}</td><td class="num">${liters(t.amount,t.fuel).toFixed(1)}</td><td><b class="num">${sar(t.amount)}</b></td>${S.tax.on?`<td class="num vi">${sar(vatOf(t.amount))}</td>`:''}<td>${statusPill(t)}</td></tr>`}).join('')}</tbody></table></div>`;
+}
+function wFleetOverview(){
+ const {used,pct,litres}=fleetTotals(),w=WEEKS(),mx=Math.max(1,...w),pr=pendingReqs();
+ const barC=['#2F6BFF','#7C5CFF','#0891B2','#00A86B'];
+ return ph(T('نظرة عامة على الأسطول','Fleet overview'),T('أكتوبر 2026 · تحديث مباشر من المضخات','October 2026 · live from station pumps'),`<button class="wbtn" data-act="toast:${T('تم شحن 5,000,000 ج.س عبر بنكك','SDG 5,000,000 added via Bankak')}">${ic('plus')}${T('شحن الرصيد','Top up')}</button><button class="wbtn s" data-act="toast:${T('تم إرسال التقرير إلى الإدارة المالية','Report sent to finance')}">${ic('download')}${T('تصدير','Export')}</button>`)+
+ `<div class="wk">${wk(T('الرصيد المسبق','Prepaid balance'),`${sar(S.fleetBalance)}<span class="cap">${CUR()}</span>`,T('متاح للتعبئة','available for fueling'),'bl','wallet')}
+  ${wk(T('مصروف الشهر','Month spend'),`${sar(used)}<span class="cap">${CUR()}</span>`,T(`${pct.toFixed(0)}% من إجمالي الحدود`,`${pct.toFixed(0)}% of total limits`),'vi','chart')}
+  ${wk(T('طلبات بانتظار الاعتماد','Requests awaiting approval'),pr.length,T('من السائقين','from drivers'),'or','inbox')}
+  ${wk(T('اللترات','Litres'),litres.toFixed(0),T('هذا الشهر','this month'),'cy','nozzle')}</div>
+ <div class="grid2">
+  <div class="card panel"><h2>${T('ميزانيات الفئات','Tier budgets')}<button class="btn-sm" data-act="wtab:tiers">${T('إدارة الفئات','Manage tiers')}</button></h2>${S.tiers.map(t=>{const s=tierStats(t);return `<div class="li"><span class="ico ${t.c}">${ic(t.icon)}</span><div class="t"><b>${esc(N(t.name))}</b><span><span class="num">${s.vs.length}</span> ${T('مركبات','vehicles')} · ${T('المصروف','spent')} ${short(s.spent)} ${T('من','of')} ${short(s.budget)}</span>${quota(s.spent,s.budget)}</div><div class="r"><b class="num em">${short(s.remain)}</b><span class="hint">${T('متبقٍ','left')}</span></div></div>`}).join('')}</div>
+  <div class="card panel"><h2>${T('المصروف الأسبوعي','Weekly spend')}<span>${CUR()}</span></h2><div class="chart" style="height:170px">${w.map((v,i)=>`<div><span class="num w">${short(v)}</span><i style="height:${v/mx*74}%;background:${barC[i]}"></i><span>${T('الأسبوع','Week')} ${i+1}</span></div>`).join('')}</div></div>
+ </div>
+ ${pr.length?`<div class="card panel"><h2>${T('طلبات بانتظار الاعتماد','Requests awaiting approval')}<button class="btn-sm" data-act="wtab:requests">${T('عرض الكل','View all')}</button></h2><div class="reqgrid">${pr.slice(0,3).map(reqCardFleet).join('')}</div></div>`:''}
+ <div class="card panel"><h2>${T('آخر التعبئات','Latest fill-ups')}<button class="btn-sm" data-act="wtab:tx">${T('عرض الكل','View all')}</button></h2>${fleetTxTable(S.tx.filter(t=>t.fleetId&&fv(t.fleetId)).slice(0,5))}</div>`;
+}
+function wFleetRequests(){
+ const rs=filteredReqs();
+ return ph(T('طلبات السائقين','Driver requests'),T('راجع طلبات زيادة الحد وإعادة التفعيل. تُضاف الزيادة المعتمدة إلى حد المركبة لهذا الشهر وتُحتسب ضمن ميزانية فئتها.','Review limit increase and reactivation requests. An approved increase is added to the vehicle\'s limit for this month and counted in its tier budget.'))+
+ `<div class="card panel">${reqFilterBar()}<div class="reqgrid">${rs.map(reqCardFleet).join('')||`<div class="empty">${T('لا توجد طلبات في هذه القائمة.','No requests in this list.')}</div>`}</div></div>`;
+}
+function wFleetVehicles(){
+ return ph(T('المركبات','Vehicles'),T('يُحدَّد الحد الشهري لكل مركبة من ميزانية فئتها، ويمكن تخصيص حد مختلف لمركبة بعينها.','Each vehicle\'s monthly limit comes from its tier budget. You can set a custom limit for a specific vehicle.'),`<button class="wbtn" data-act="modal:vehicle:new">${ic('plus')}${T('إضافة مركبة','Add vehicle')}</button>`)+
+ `<div class="card panel"><div class="tbl-wrap"><table><thead><tr><th>${T('اللوحة','Plate')}</th><th>${T('الطراز','Model')}</th><th>${T('السائق','Driver')}</th><th>${T('الفئة','Tier')}</th><th>${T('الوقود','Fuel')}</th><th>RFID</th><th>${T('المصروف / الحد','Spent / limit')}</th><th>${T('نشطة','Active')}</th><th></th></tr></thead><tbody>
+ ${S.fleet.map(f=>`<tr class="${f.active?'':'off'}"><td>${plate(f.plate)}</td><td><b>${esc(N(f.name))}</b></td><td>${esc(drvName(f))}</td>
+ <td><select class="tinput" style="font-family:var(--body);width:auto" id="wt-${f.id}" data-wtier="${f.id}" aria-label="${T('الفئة','Tier')}"><option value="">${T('بدون فئة','No tier')}</option>${S.tiers.map(t=>`<option value="${t.id}" ${f.tier===t.id?'selected':''}>${esc(N(t.name))}</option>`).join('')}</select></td>
+ <td>${fuelTag(f.fuel)}</td>
+ <td>${f.tag<15?`<span class="pill am">${ic('battery',13)}<span class="num">${f.tag}%</span></span>`:`<span class="pill em"><span class="num">${f.tag}%</span></span>`}</td>
+ <td class="mini"><span class="num" style="font-size:12px">${pair(f.used,limOf(f))}</span>${quota(f.used,limOf(f))}${f.custom!=null||f.extra?`<span class="hint">${f.custom!=null?T('حد مخصص','Custom'):''}${f.custom!=null&&f.extra?' · ':''}${f.extra?plus(f.extra):''}</span>`:''}</td>
+ <td><input type="checkbox" class="toggle" id="act-${f.id}" data-active="${f.id}" ${f.active?'checked':''} aria-label="${T('تفعيل المركبة','Vehicle active')}"></td><td>${editBtn('vehicle',f.id)}</td></tr>`).join('')}
+ </tbody></table></div></div>`;
+}
+function wFleetDrivers(){
+ return ph(T('السائقون','Drivers'),T('أضف السائقين وعدّل بياناتهم أو أوقف حساباتهم. لا يستطيع السائق الموقوف استخدام تصريح الوقود.','Add drivers, edit their details or suspend their accounts. A suspended driver cannot use the fuel pass.'),`<button class="wbtn" data-act="modal:driver:new">${ic('plus')}${T('إضافة سائق','Add driver')}</button>`)+
+ `<div class="card panel"><div class="tbl-wrap"><table><thead><tr><th>${T('السائق','Driver')}</th><th>${T('الرقم','ID')}</th><th>${T('الجوال','Mobile')}</th><th>${T('المركبة','Vehicle')}</th><th>${T('الفئة','Tier')}</th><th>${T('الحالة','Status')}</th><th>${T('المصروف / الحد','Spent / limit')}</th><th>${T('مفعّل','Active')}</th><th></th></tr></thead><tbody>
+ ${S.drivers.map(d=>{const f=S.fleet.find(x=>x.driver===d.id),t=tierOf(f);return `<tr class="${d.active?'':'off'}"><td><b>${esc(N(d.name))}</b></td><td class="num mut">${esc(d.code)}</td><td class="num ltr mut">${esc(d.phone)}</td><td>${f?plate(f.plate):'—'}</td><td>${t?`<span class="pill ${t.c}">${esc(N(t.name))}</span>`:'—'}</td><td>${!d.active?`<span class="pill rd">${T('موقوف','Suspended')}</span>`:d.app?`<span class="pill em"><span class="dot"></span>${T('التطبيق مفعّل','App active')}</span>`:`<span class="pill am">${T('بانتظار التفعيل','Invite pending')}</span>`}</td><td class="mini">${f?`<span class="num" style="font-size:12px">${pair(f.used,limOf(f))}</span>${quota(f.used,limOf(f))}`:'—'}</td>
+ <td><input type="checkbox" class="toggle" id="den-${d.id}" data-denable="${d.id}" ${d.active?'checked':''} aria-label="${T('تفعيل السائق','Driver active')} ${esc(N(d.name))}"></td><td>${editBtn('driver',d.id)}</td></tr>`}).join('')}
+ </tbody></table></div></div>`;
+}
+function wFleetTiers(){
+ const tot=S.tiers.reduce((a,t)=>{const s=tierStats(t);a.b+=s.budget;a.s+=s.spent;return a},{b:0,s:0});
+ return ph(T('الفئات والميزانيات','Tiers & budgets'),T('اربط المركبات وسائقيها بالفئة المناسبة. ميزانية الفئة = ميزانية المركبة × عدد المركبات، ويُخصم منها كل ما يصرفه سائقوها.','Assign vehicles and their drivers to a tier. Tier budget = per-vehicle budget × number of vehicles, and every fill-up by its drivers is deducted from it.'),`<button class="wbtn" data-act="modal:tier:new">${ic('plus')}${T('فئة جديدة','New tier')}</button>`)+
+ `<div class="wk">${wk(T('إجمالي الميزانيات','Total budgets'),`${sar(tot.b)}<span class="cap">${CUR()}</span>`,T('لهذا الشهر','this month'),'bl','layers')}${wk(T('المصروف','Spent'),`${sar(tot.s)}<span class="cap">${CUR()}</span>`,T(`${(tot.s/Math.max(1,tot.b)*100).toFixed(0)}% من الميزانيات`,`${(tot.s/Math.max(1,tot.b)*100).toFixed(0)}% of budgets`),'vi','chart')}${wk(T('المتبقي','Remaining'),`${sar(Math.max(0,tot.b-tot.s))}<span class="cap">${CUR()}</span>`,T('قابل للصرف','available to spend'),'em','wallet')}${wk(T('مركبات بلا فئة','Vehicles without a tier'),S.fleet.filter(f=>!tierOf(f)).length,T('يجب ربطها بفئة','should be assigned'),'or','alert')}</div>
+ <div class="reqgrid" style="grid-template-columns:repeat(auto-fill,minmax(340px,1fr))">${S.tiers.map(t=>tierCard(t,true)).join('')}</div>`;
+}
+function wFleetRules(){
+ return ph(T('قواعد الوقود ومكافحة الاحتيال','Fuel rules & fraud controls'),T('تُطبَّق عند المضخة وفي تطبيق السائق وماسح العامل.','Enforced at the pump, in the driver app and on the attendant scanner.'))+
+ `<div class="grid2"><div class="card panel"><h2>${T('القواعد العامة','General rules')}</h2>${rulesBlock('-w')}</div>
+ <div class="card panel"><h2>${T('سجل الأمان','Security log')}</h2><div class="stack">${S.secLog.map(secLogCard).join('')}</div></div></div>`;
+}
+function wFleetTx(){
+ const v=txSummary();
+ return ph(T('العمليات','Transactions'),T('جميع تعبئات مركبات الشركة مع إيصالاتها الإلكترونية.','All company fill-ups with their e-receipts.'),`<button class="wbtn s" data-act="wtab:settings">${ic('percent')}${S.tax.on?T(`الضريبة ${S.tax.rate}%`,`VAT ${S.tax.rate}%`):T('الضريبة غير مفعّلة','VAT off')}</button><button class="wbtn s" data-act="toast:${T('تم تنزيل الكشف','Statement downloaded')}">${ic('download')}${T('تنزيل الكشف','Download statement')}</button>`)+
+ `<div class="wk">${wk(T('المصروف','Spent'),`${sar(v.tot)}<span class="cap">${CUR()}</span>`,T('عمليات مكتملة','completed fill-ups'),'bl','wallet')}${S.tax.on?wk(T('ضريبة المدخلات','Input VAT'),`${sar(v.vat)}<span class="cap">${CUR()}</span>`,`${S.tax.rate}%`,'vi','percent'):wk(T('الضريبة','VAT'),T('غير مفعّلة','Off'),T('من الإعدادات','in Settings'),'vi','percent')}${wk(T('اللترات','Litres'),v.lit.toFixed(0),T('هذا الشهر','this month'),'cy','nozzle')}${wk(T('الإيصالات','Receipts'),v.n,T('إيصالات إلكترونية','e-receipts'),'em','receipt')}</div>
+ <div class="card panel"><div class="filters"><input id="txq" type="search" placeholder="${T('ابحث برقم الإيصال أو اللوحة أو اسم السائق','Search by receipt, plate or driver')}" value="${esc(S.txFilter.q)}"><select id="txf"><option value="all">${T('جميع أنواع الوقود','All fuel types')}</option>${Object.keys(PRICES).map(k=>`<option value="${k}" ${S.txFilter.fuel===k?'selected':''}>${N(FUELFULL[k])}</option>`).join('')}</select></div><div id="txbody">${filteredFleetTx()}</div></div>`;
+}
+function filteredFleetTx(){
+ const q=S.txFilter.q.trim().toLowerCase();
+ return fleetTxTable(S.tx.filter(t=>t.fleetId&&fv(t.fleetId)).filter(t=>{const f=fv(t.fleetId),d=f.driver?drv(f.driver):null;
+  if(S.txFilter.fuel!=='all'&&t.fuel!==S.txFilter.fuel)return false;
+  if(!q)return true;
+  return [t.id,f.plate.join(' '),d?d.name.ar+' '+d.name.en:''].join(' ').toLowerCase().includes(q)}));
+}
+function wFleetAlerts(){return ph(T('التنبيهات','Alerts'),T('تصل أيضاً كإشعارات إلى تطبيق مدير الأسطول.','Also sent as notifications to the fleet manager\'s app.'))+`<div class="reqgrid">${fleetAlerts().map(alertCard).join('')}</div>`}
+function wSettings(){
+ const p=S.portal,s=stn(MY),t=S.tax;
+ const fld=(id,key,label,val,ltr,mono)=>`<div class="fieldw"><label for="${id}">${label}</label><input class="field${mono?' num':''}" id="${id}" data-set="${key}" value="${esc(val)}"${ltr?' dir="ltr"':''}></div>`;
+ const profile=p==='fleet'?`<div class="card panel"><h2>${T('بيانات الشركة','Company details')}</h2><div class="mgrid" style="margin:0">
+   ${fld('set-ar','org.ar',T('الاسم بالعربية','Name (Arabic)'),S.org.ar)}${fld('set-en','org.en',T('الاسم بالإنجليزية','Name (English)'),S.org.en,1)}
+   <div class="full">${fld('set-ph','org.phone',T('هاتف العمليات','Operations phone'),S.org.phone,1,1)}</div></div></div>`
+  :`<div class="card panel"><h2>${T('بيانات المحطة','Station details')}</h2><div class="mgrid" style="margin:0">
+   ${fld('set-sar','st.name.ar',T('الاسم بالعربية','Name (Arabic)'),s.name.ar)}${fld('set-sen','st.name.en',T('الاسم بالإنجليزية','Name (English)'),s.name.en,1)}
+   ${fld('set-aar','st.area.ar',T('العنوان بالعربية','Address (Arabic)'),s.area.ar)}${fld('set-aen','st.area.en',T('العنوان بالإنجليزية','Address (English)'),s.area.en,1)}
+   <div class="full">${fld('set-sph','st.phone',T('هاتف المحطة','Station phone'),s.phone,1,1)}</div></div></div>`;
+ return ph(T('الإعدادات والضريبة','Settings & VAT'),T('تُحفظ التغييرات فوراً وتنعكس على التطبيقات والإيصالات.','Changes are saved instantly and apply to the apps and receipts.'))+
+ `<div class="grid2">${profile}
+ <div class="card panel"><h2>${T('ضريبة القيمة المضافة','Value added tax (VAT)')}</h2>
+  <div class="rule"><span class="ico vi">${ic('percent')}</span><div class="t"><b>${T('تطبيق الضريبة','Apply VAT')}</b><span>${T('عند التفعيل تظهر الضريبة في الإيصالات والتقارير.','When on, VAT appears on receipts and reports.')}</span></div><input type="checkbox" class="toggle" id="vat-on" data-vat="on" ${t.on?'checked':''} aria-label="${T('تطبيق الضريبة','Apply VAT')}"></div>
+  ${t.on?`<div class="fieldw" style="margin-top:14px"><label for="vat-rate">${T('نسبة الضريبة (%)','VAT rate (%)')}</label><input class="field num" id="vat-rate" data-vat="rate" type="number" min="0" max="100" step="0.5" value="${t.rate}" style="max-width:180px"><span class="hint">${T('مثال: على مبلغ 100,000 ج.س شامل الضريبة، قيمة الضريبة','Example: on SDG 100,000 including VAT, the VAT is')} <b class="num vi">${sar(vatOf(100000))} ${CUR()}</b></span></div>`
+   :`<div class="note am" style="margin-top:14px;font-weight:500">${ic('info',16)}${T('الضريبة غير مفعّلة. تصدر الإيصالات بدون بند ضريبة.','VAT is off. Receipts are issued without a VAT line.')}</div>`}
+ </div></div>`;
+}
+function wStOverview(){
+ const s=shiftStats(),pend=stTx().filter(t=>t.status!=='done');
+ const mix=['91','95','Diesel'].map(k=>({k,v:s.d.filter(t=>t.fuel===k).reduce((a,t)=>a+t.amount,0)})),mm=Math.max(1,...mix.map(m=>m.v));
+ return ph(esc(N(stn(MY).name)),T('لوحة المشرف · اليوم','Supervisor console · today'))+
+ `<div class="wk">${wk(T('مبيعات اليوم','Today\'s sales'),`${sar(s.sales)}<span class="cap">${CUR()}</span>`,S.tax.on?`${T('الضريبة','VAT')} ${sar(s.vat)}`:T('بدون ضريبة','No VAT'),'or','wallet')}
+ ${wk(T('العمليات','Fill-ups'),s.d.length,`<span class="num">${s.lit.toFixed(0)}</span> ${T('لتر','litres')}`,'cy','nozzle')}
+ ${wk(T('قيد التنفيذ','In progress'),pend.length,T('من التطبيق والماسح','from app and scanner'),'am','clock')}
+ ${wk(T('المضخات العاملة','Pumps online'),`${S.pumps.filter(p=>p.on).length}/${S.pumps.length}`,T('من صفحة المضخات','managed in Pumps'),'em','pump')}</div>
+ <div class="grid2">
+  <div class="card panel"><h2>${T('العمليات الجارية','Live operations')}<span>${T('تظهر أيضاً في تطبيق العامل','also on the attendant app')}</span></h2>
+   ${pend.length?pend.map(t=>`<div class="li"><span class="ico or"><b class="num">${t.pump}</b></span><div class="t"><b>${money(t.amount)} · ${fuelTag(t.fuel)}</b><span>${plateTxt(txPlate(t))} · ${t.code?`${T('الرمز','code')} <span class="num">${t.code}</span> · `:''}${N(t.when)}</span></div><div class="r">${statusPill(t)}${t.status==='auth'?`<button class="btn-sm p" data-act="start:${t.id}">${T('تشغيل','Start')}</button>`:`<button class="btn-sm p" data-act="finish:${t.id}">${T('إنهاء','Finish')}</button>`}</div></div>`).join('')
+    :`<div class="empty">${T('لا توجد عمليات جارية.','No live operations.')}</div>`}
+  </div>
+  <div class="card panel"><h2>${T('المبيعات حسب نوع الوقود','Sales by fuel')}</h2>${mix.map(m=>`<div class="hbar"><span class="l">${fuelTag(m.k)}</span><span class="track"><i style="width:${m.v/mm*100}%;background:var(--${m.k==='91'?'g91':m.k==='95'?'g95':'am-f'})"></i></span><span class="v">${money(m.v)}</span></div>`).join('')}</div>
+ </div>`;
+}
+function wStPumps(){
+ return ph(T('المضخات','Pumps'),T('حدّد أنواع الوقود ومعدل التدفق لكل مضخة، أو أوقفها للصيانة.','Set each pump\'s fuel grades and flow rate, or take it offline for maintenance.'))+
+ `<div class="pumps">${S.pumps.map(p=>{const s=pumpState(p.n),t=stTx().find(x=>x.pump===p.n&&x.status!=='done');return `<div class="card pumpc ${s==='off'?'off':''}">
+  <div class="hd"><span class="n">${String(p.n).padStart(2,'0')}</span><input type="checkbox" class="toggle" id="pump-${p.n}" data-pump="${p.n}" ${p.on?'checked':''} aria-label="${T('تشغيل المضخة','Pump online')} ${p.n}"></div>
+  <span class="pill ${s==='busy'?'cy':s==='off'?'rd':'em'}"><span class="dot"></span>${pumpLbl(s)}</span>
+  <div style="display:flex;gap:4px;flex-wrap:wrap">${p.grades.map(fuelTag).join('')}</div>
+  <span class="muted" style="font-size:12px">${t?`${curTxt(t.amount)} · ${plateTxt(txPlate(t))}`:`<span class="num">${p.flow}</span> ${T('لتر/دقيقة','L/min')}`}</span>
+  ${editBtn('pump',p.n)}</div>`}).join('')}</div>`;
+}
+function wStTx(){
+ return ph(T('عمليات المحطة','Station transactions'),T('مدفوعات تطبيق بترو والماسح في هذه المحطة.','Petro app and scanner payments at this station.'),`<button class="wbtn s" data-act="wtab:settings">${ic('percent')}${S.tax.on?T(`الضريبة ${S.tax.rate}%`,`VAT ${S.tax.rate}%`):T('الضريبة غير مفعّلة','VAT off')}</button><button class="wbtn s" data-act="toast:${T('تم تصدير الملف','Export ready')}">${ic('download')}${T('تصدير','Export')}</button>`)+
+ `<div class="card panel"><div class="tbl-wrap"><table><thead><tr><th>${T('العملية','Transaction')}</th><th>${T('الوقت','Time')}</th><th>${T('المضخة','Pump')}</th><th>${T('المركبة','Vehicle')}</th><th>${T('العميل','Customer')}</th><th>${T('الطريقة','Method')}</th><th>${T('الوقود','Fuel')}</th><th>${T('المبلغ','Amount')}</th>${S.tax.on?`<th>${T('الضريبة','VAT')}</th>`:''}<th>${T('الحالة','Status')}</th></tr></thead><tbody>
+ ${stTx().map(t=>`<tr><td class="num">${t.id}</td><td class="mut">${N(t.when)}</td><td class="num">${t.pump}</td><td>${plate(txPlate(t))}</td><td>${t.fleetId?T('حساب أسطول','Fleet account'):T('عميل فرد','Individual')}</td><td>${t.src==='qr'?`<span class="pill vi">QR</span>`:t.src==='app'?`<span class="pill em">${T('التطبيق','App')}</span>`:`<span class="pill cy">RFID</span>`}</td><td>${fuelTag(t.fuel)}</td><td><b class="num">${sar(t.amount)}</b></td>${S.tax.on?`<td class="num vi">${sar(vatOf(t.amount))}</td>`:''}<td>${statusPill(t)}</td></tr>`).join('')}
+ </tbody></table></div></div>`;
+}
+function wStStaff(){
+ return ph(T('الموظفون والورديات','Staff & shifts'),T('أضف العاملين وحدّد أدوارهم وورديّاتهم أو أوقف حساباتهم.','Add attendants, set their roles and shifts, or suspend their accounts.'),`<button class="wbtn" data-act="modal:staff:new">${ic('plus')}${T('إضافة موظف','Add staff member')}</button>`)+
+ `<div class="card panel"><div class="tbl-wrap"><table><thead><tr><th>${T('الاسم','Name')}</th><th>${T('الرقم الوظيفي','Staff ID')}</th><th>${T('الدور','Role')}</th><th>${T('الوردية','Shift')}</th><th>${T('الجهاز','Device')}</th><th>${T('مفعّل','Active')}</th><th></th></tr></thead><tbody>
+ ${S.staff.map(s=>`<tr class="${s.on?'':'off'}"><td><b>${esc(N(s.name))}</b></td><td class="num mut">${esc(s.code)}</td><td>${N(roleName(s.role))}</td><td class="num">${shiftName(s.shift)}</td><td class="mut">${esc(s.dev)}</td><td><input type="checkbox" class="toggle" id="son-${s.id}" data-son="${s.id}" ${s.on?'checked':''} aria-label="${T('تفعيل الموظف','Staff active')}"></td><td>${editBtn('staff',s.id)}</td></tr>`).join('')}
+ </tbody></table></div></div>`;
+}
+function wStSettle(){
+ const P=[{d:W('26 أكتوبر 2026','26 Oct 2026'),a:27630000,s:'next'},{d:W('25 أكتوبر 2026','25 Oct 2026'),a:26978000,s:'paid'},{d:W('24 أكتوبر 2026','24 Oct 2026'),a:28815000,s:'paid'},{d:W('23 أكتوبر 2026','23 Oct 2026'),a:24960000,s:'paid'}];
+ return ph(T('التسويات','Settlements'),T('تحويلات يومية إلى الحساب البنكي للمحطة •• 0917','Daily transfers to the station\'s bank account •• 0917'))+
+ `<div class="wk">${wk(T('التحويل القادم','Next payout'),`${sar(27630000)}<span class="cap">${CUR()}</span>`,T('غداً','tomorrow'),'em','bank')}${wk(T('رسوم الشهر','Fees this month'),`${sar(468600)}<span class="cap">${CUR()}</span>`,T('رسوم المنصة','platform fee'),'or','receipt')}</div>
+ <div class="card panel"><div class="tbl-wrap"><table><thead><tr><th>${T('التاريخ','Date')}</th><th>${T('المبلغ','Amount')}</th><th>${T('الحالة','Status')}</th></tr></thead><tbody>${P.map(p=>`<tr><td>${N(p.d)}</td><td>${money(p.a)}</td><td>${p.s==='paid'?`<span class="pill em">${T('تم التحويل','Paid out')}</span>`:`<span class="pill am">${T('مجدول','Scheduled')}</span>`}</td></tr>`).join('')}</tbody></table></div></div>`;
+}
+
+/* ---------- Edit modals ---------- */
+const optsFuel=()=>Object.keys(PRICES).map(k=>[k,N(FUELFULL[k])]);
+const TIERC=['bl','or','vi','em','cy'];
+const MODALS={
+ vehicle:{title:o=>o?T('تعديل المركبة','Edit vehicle'):T('إضافة مركبة','Add vehicle'),get:id=>fv(id),
+  fields:o=>[
+   {k:'num',l:T('أرقام اللوحة','Plate number'),v:o?o.plate[0]:'',req:1,mono:1,pattern:'[0-9]{1,5}',hint:T('أرقام فقط','Digits only')},
+   {k:'lat',l:T('رمز الولاية (لاتيني)','State code (Latin)'),v:o?o.plate[1]:'KRT',req:1,ltr:1},
+   {k:'ara',l:T('رمز الولاية (عربي)','State code (Arabic)'),v:o?o.plate[2]:'خ ر ط',req:1},
+   {k:'fuel',l:T('نوع الوقود','Fuel grade'),t:'select',v:o?o.fuel:'Diesel',opts:optsFuel()},
+   {k:'nar',l:T('الطراز بالعربية','Model (Arabic)'),v:o?o.name.ar:'',req:1},
+   {k:'nen',l:T('الطراز بالإنجليزية','Model (English)'),v:o?o.name.en:'',req:1,ltr:1},
+   {k:'tier',l:T('الفئة','Tier'),t:'select',v:o?o.tier||'':'t2',opts:[['',T('بدون فئة','No tier')],...S.tiers.map(t=>[t.id,`${N(t.name)} · ${short(t.budget)}`])]},
+   {k:'custom',l:T('حد مخصص (ج.س)','Custom limit (SDG)'),t:'number',v:o&&o.custom!=null?o.custom:'',min:0,step:10000,hint:T('اتركه فارغاً لاستخدام ميزانية الفئة','Leave empty to use the tier budget')},
+   {k:'driver',l:T('السائق','Driver'),t:'select',v:o?o.driver||'':'',opts:[['',T('غير مخصص','Unassigned')],...S.drivers.map(d=>[d.id,N(d.name)])]},
+   {k:'tag',l:T('بطارية الشريحة (%)','Tag battery (%)'),t:'number',v:o?o.tag:100,min:0,max:100,req:1},
+   {k:'active',l:T('المركبة نشطة','Vehicle active'),t:'check',v:o?o.active:true,full:1}],
+  save(v,o){const rec=o||{id:'f'+Date.now().toString(36),used:0,extra:0};
+   rec.plate=[v.num,v.lat.toUpperCase(),v.ara||autoAr(v.lat.toUpperCase())];rec.name=W(v.nar,v.nen);rec.fuel=v.fuel;rec.tier=v.tier||null;rec.custom=v.custom===''?null:+v.custom;rec.tag=Math.max(0,Math.min(100,+v.tag));rec.active=v.active;
+   if(v.driver)S.fleet.forEach(f=>{if(f!==rec&&f.driver===v.driver)f.driver=null});rec.driver=v.driver||null;
+   if(!o)S.fleet.push(rec);newToken();return o?T('تم حفظ بيانات المركبة','Vehicle saved'):T('تمت إضافة المركبة وطلب شريحة الوقود','Vehicle added and fuel tag ordered')}},
+ driver:{title:o=>o?T('تعديل بيانات السائق','Edit driver'):T('إضافة سائق','Add driver'),get:id=>drv(id),
+  fields:o=>{const f=o?S.fleet.find(x=>x.driver===o.id):null;return [
+   {k:'nar',l:T('الاسم بالعربية','Name (Arabic)'),v:o?o.name.ar:'',req:1},
+   {k:'nen',l:T('الاسم بالإنجليزية','Name (English)'),v:o?o.name.en:'',req:1,ltr:1},
+   {k:'code',l:T('رقم السائق','Driver ID'),v:o?o.code:'D-'+(3120+S.drivers.length),req:1,mono:1},
+   {k:'phone',l:T('رقم الجوال','Mobile number'),v:o?o.phone:'+249 ',req:1,mono:1,pattern:'\\+249[0-9 ]{9,13}',hint:T('يبدأ بـ +249 ويليه 9 أرقام','+249 followed by 9 digits')},
+   {k:'veh',l:T('المركبة المخصصة','Assigned vehicle'),t:'select',v:f?f.id:'',opts:[['',T('بدون مركبة','No vehicle')],...S.fleet.map(x=>[x.id,`${N(x.name)} · ${x.plate[0]} ${x.plate[1]}${tierOf(x)?' · '+N(tierOf(x).name):''}`])],full:1},
+   {k:'app',l:T('تم تفعيل التطبيق','App activated'),t:'check',v:o?o.app:false},
+   {k:'active',l:T('الحساب مفعّل','Account active'),t:'check',v:o?o.active:true}]},
+  save(v,o){const digits=v.phone.replace(/\D/g,'');if(!/^249\d{9}$/.test(digits))return {err:T('يجب أن يبدأ رقم الجوال بـ +249 ويليه 9 أرقام.','The mobile number must be +249 followed by 9 digits.')};
+   const rec=o||{id:'d'+Date.now().toString(36)};
+   rec.name=W(v.nar,v.nen);rec.code=v.code;rec.phone=`+249 ${digits.slice(3,5)} ${digits.slice(5,8)} ${digits.slice(8)}`;rec.app=v.app;rec.active=v.active;
+   if(!o)S.drivers.push(rec);
+   S.fleet.forEach(f=>{if(f.driver===rec.id&&f.id!==v.veh)f.driver=null});if(v.veh)fv(v.veh).driver=rec.id;
+   newToken();return o?T('تم حفظ بيانات السائق','Driver saved'):T('تمت إضافة السائق وإرسال دعوة التطبيق','Driver added and app invite sent')}},
+ staff:{title:o=>o?T('تعديل بيانات الموظف','Edit staff member'):T('إضافة موظف','Add staff member'),get:id=>S.staff.find(s=>s.id===id),
+  fields:o=>[
+   {k:'nar',l:T('الاسم بالعربية','Name (Arabic)'),v:o?o.name.ar:'',req:1},
+   {k:'nen',l:T('الاسم بالإنجليزية','Name (English)'),v:o?o.name.en:'',req:1,ltr:1},
+   {k:'code',l:T('الرقم الوظيفي','Staff ID'),v:o?o.code:'ATT-'+(13+S.staff.length),req:1,mono:1},
+   {k:'role',l:T('الدور','Role'),t:'select',v:o?o.role:'att',opts:[['sup',N(roleName('sup'))],['att',N(roleName('att'))]]},
+   {k:'shift',l:T('الوردية','Shift'),t:'select',v:o?o.shift:'A',opts:['A','B','C'].map(s=>[s,shiftName(s)])},
+   {k:'dev',l:T('الجهاز','Device'),v:o?o.dev:'',ltr:1},
+   {k:'on',l:T('الحساب مفعّل','Account active'),t:'check',v:o?o.on:true,full:1}],
+  save(v,o){const rec=o||{id:'a'+Date.now().toString(36)};rec.name=W(v.nar,v.nen);rec.code=v.code;rec.role=v.role;rec.shift=v.shift;rec.dev=v.dev;rec.on=v.on;if(!o)S.staff.push(rec);return o?T('تم حفظ بيانات الموظف','Staff member saved'):T('تمت إضافة الموظف','Staff member added')}},
+ pump:{title:o=>T(`تعديل المضخة ${o.n}`,`Edit pump ${o.n}`),get:id=>pumpOf(+id),
+  fields:o=>[
+   {k:'grades',l:T('أنواع الوقود','Fuel grades'),t:'multi',v:o.grades,opts:optsFuel()},
+   {k:'flow',l:T('معدل التدفق (لتر/دقيقة)','Flow rate (L/min)'),t:'number',v:o.flow,min:10,max:200,req:1},
+   {k:'on',l:T('المضخة تعمل','Pump online'),t:'check',v:o.on}],
+  save(v,o){if(!v.grades.length)return {err:T('اختر نوع وقود واحداً على الأقل.','Choose at least one fuel grade.')};o.grades=v.grades;o.flow=+v.flow;o.on=v.on;return T('تم حفظ إعدادات المضخة','Pump saved')}},
+ tier:{title:o=>o?T('تعديل الفئة','Edit tier'):T('فئة جديدة','New tier'),get:id=>tierById(id),
+  fields:o=>[
+   {k:'nar',l:T('اسم الفئة بالعربية','Tier name (Arabic)'),v:o?o.name.ar:'',req:1},
+   {k:'nen',l:T('اسم الفئة بالإنجليزية','Tier name (English)'),v:o?o.name.en:'',req:1,ltr:1},
+   {k:'budget',l:T('الميزانية الشهرية لكل مركبة (ج.س)','Monthly budget per vehicle (SDG)'),t:'number',v:o?o.budget:1000000,min:10000,step:10000,req:1},
+   {k:'dailyL',l:T('الحد اليومي (لتر)','Daily cap (litres)'),t:'number',v:o?o.dailyL:80,min:1,req:1},
+   {k:'win',l:T('ساعات التعبئة','Fueling hours'),v:o?o.win:'06:00–22:00',mono:1,req:1,full:1},
+   {k:'vehicles',l:T('المركبات والسائقون في هذه الفئة','Vehicles and drivers in this tier'),t:'multi',col:1,v:o?S.fleet.filter(f=>f.tier===o.id).map(f=>f.id):[],opts:S.fleet.map(f=>[f.id,`${N(f.name)} · ${f.plate[0]} ${f.plate[1]} — ${drvName(f)}${f.tier&&(!o||f.tier!==o.id)&&tierOf(f)?` (${T('حالياً في','now in')} ${N(tierOf(f).name)})`:''}`])}],
+  save(v,o){const rec=o||{id:'t'+Date.now().toString(36),icon:'layers',c:TIERC[S.tiers.length%TIERC.length]};
+   rec.name=W(v.nar,v.nen);rec.budget=+v.budget;rec.dailyL=+v.dailyL;rec.win=v.win;if(!o)S.tiers.push(rec);
+   S.fleet.forEach(f=>{if(v.vehicles.includes(f.id))f.tier=rec.id;else if(f.tier===rec.id)f.tier=null});
+   const n=v.vehicles.length;return T(`تم حفظ الفئة · ${n} مركبات مرتبطة`,`Tier saved · ${n} vehicles assigned`)}}
+};
+function modalHTML(){
+ const {type,id}=S.modal,M=MODALS[type],o=id==='new'?null:M.get(id);
+ const f=M.fields(o).map(x=>{const fid='mf-'+x.k;
+  if(x.t==='check')return `<label class="checkrow ${x.full?'full':''}" for="${fid}"><span>${x.l}</span><input type="checkbox" class="toggle" id="${fid}" ${x.v?'checked':''}></label>`;
+  if(x.t==='multi')return `<div class="fieldw full"><span style="font-weight:600;font-size:13px">${x.l}</span><div class="multi${x.col?' col':''}">${x.opts.map(([v,l])=>`<label><span>${esc(l)}</span><input type="checkbox" name="${fid}" value="${v}" ${x.v.includes(v)?'checked':''}></label>`).join('')}</div></div>`;
+  if(x.t==='select')return `<div class="fieldw ${x.full?'full':''}"><label for="${fid}">${x.l}</label><select class="field" id="${fid}">${x.opts.map(([v,l])=>`<option value="${esc(v)}" ${String(x.v)===String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select></div>`;
+  return `<div class="fieldw ${x.full?'full':''}"><label for="${fid}">${x.l}</label><input class="field ${x.mono?'num':''}" id="${fid}" type="${x.t==='number'?'number':'text'}" value="${esc(x.v)}" ${x.req?'required':''} ${x.min!=null?`min="${x.min}"`:''} ${x.max!=null?`max="${x.max}"`:''} ${x.step?`step="${x.step}"`:''} ${x.pattern?`pattern="${x.pattern}"`:''} ${x.ltr?'dir="ltr"':''}>${x.hint?`<small class="hint">${x.hint}</small>`:''}</div>`;
+ }).join('');
+ return `<div class="modal-bg" data-act="mbg"><form class="modal" id="mform" role="dialog" aria-modal="true" novalidate>
+  <h3>${M.title(o)}</h3><p class="sub" style="margin:0">${T('تنعكس التغييرات فوراً على تطبيقات الجوال.','Changes apply to the mobile apps immediately.')}</p>
+  <div class="mgrid">${f}</div><p id="merr" class="rd" style="font-weight:600;margin:0 0 10px" hidden></p>
+  <div class="row"><button type="button" class="btn-s" data-act="mclose">${T('إلغاء','Cancel')}</button><button type="submit" class="btn-p" style="background:var(--rc)">${ic('check')}${T('حفظ','Save')}</button></div>
+ </form></div>`;
+}
+function saveModal(){
+ const {type,id}=S.modal,M=MODALS[type],o=id==='new'?null:M.get(id),vals={},form=$('#mform'),err=$('#merr');
+ for(const x of M.fields(o)){const fid='mf-'+x.k;
+  if(x.t==='check')vals[x.k]=$('#'+fid).checked;
+  else if(x.t==='multi')vals[x.k]=[...form.querySelectorAll(`input[name="${fid}"]:checked`)].map(i=>i.value);
+  else{const el=$('#'+fid);vals[x.k]=el.value.trim();if(!el.checkValidity()||(x.req&&!vals[x.k])){err.textContent=T(`يرجى مراجعة حقل «${x.l}»`,`Please check the "${x.l}" field`)+(x.hint?` · ${x.hint}`:'');err.hidden=false;el.focus();return}}}
+ const r=M.save(vals,o);
+ if(r&&r.err){err.textContent=r.err;err.hidden=false;return}
+ S.modal=null;toast(r);
+}
+
+/* request decisions */
+function decide(id,ok){
+ const r=S.requests.find(x=>x.id===id);if(!r||r.status!=='pending')return;
+ const note=(($('#rn-'+id)||{}).value||'').trim(),d=drv(r.driver),f=r.veh?fv(r.veh):null,hm=nowHM();
+ if(ok&&r.type==='limit'){const a=+(($('#ra-'+id)||{}).value||r.amount);if(!(a>=10000)){toast(T('أدخل مبلغاً معتمداً لا يقل عن 10,000 ج.س','Enter an approved amount of at least SDG 10,000'));return}if(!f){toast(T('لا توجد مركبة مرتبطة بهذا الطلب','No vehicle is linked to this request'));return}f.extra=(f.extra||0)+a;r.approved=a}
+ if(ok&&r.type==='activate'){if(d)d.active=true;if(f)f.active=true}
+ r.status=ok?'approved':'rejected';r.decided=W('اليوم '+hm,'Today '+hm);r.reply=W(note,note);
+ toast(ok?(r.type==='limit'?T(`تم اعتماد ${curTxt(r.approved)} لـ ${d?d.name.ar:''}`,`${curTxt(r.approved)} approved for ${d?d.name.en:''}`):T(`تمت إعادة تفعيل ${d?d.name.ar:''}`,`${d?d.name.en:''} reactivated`)):T('تم رفض الطلب وإشعار السائق','Request declined and driver notified'));
+}
+
+/* ---------- SHELL ---------- */
+const NAVS={
+ driver:()=>[['wallet',T('التصريح','Pass'),'wallet'],['requests',T('طلباتي','Requests'),'inbox'],['QR',T('تعبئة','Fuel'),'qr'],['history',T('السجل','History'),'history'],['hub',T('حسابي','Account'),'user']],
+ fleet:()=>[['dash',T('الرئيسية','Home'),'dash'],['fleettags',T('المركبات','Vehicles'),'truck'],['requests',T('الطلبات','Requests'),'inbox'],['rules',T('القواعد','Rules'),'shield'],['tx',T('العمليات','Activity'),'receipt']],
+ station:()=>[['scan',T('الماسح','Scanner'),'scan'],['queue',T('الطلبات','Queue'),'list'],['shift',T('الوردية','Shift'),'receipt']]
+};
+const VIEWS={driver:{wallet:driverWallet,requests:driverRequests,history:driverHistory,vehicle:driverVehicle,hub},
+ fleet:{dash:fleetDash,fleettags:fleetTags,requests:fleetRequests,rules:fleetRules,tx:fleetTx,hub},
+ station:{scan:stationScan,queue:stationQueue,shift:stationShift,hub}};
+function appShell(){
+ return `<div class="wrap">
+  <aside class="notes"><span class="lbl">${T('نموذج تفاعلي · PetroFleet السودان','Interactive prototype · PetroFleet Sudan')}</span>
+   <h1>${T('تحكّم في كل قطرة وقود.','Control every drop of fuel.')}</h1>
+   <p>${T('منصة واحدة تربط السائق الذي يعبّئ، والشركة التي تحدد الميزانيات والقواعد، والمحطة التي تصرف الوقود.','One platform connecting the driver who fuels, the company that sets budgets and rules, and the station that dispenses.')}</p>
+   <p>${T('لمدير الأسطول والمحطة لوحة تحكم على الويب تعمل على البيانات نفسها. يمكنك الانتقال إليها من الأعلى.','Fleet managers and stations also have a web admin that works on the same data. Switch to it at the top.')}</p>
+   <div class="swatches" aria-hidden="true"><i style="background:var(--em)"></i><i style="background:var(--bl)"></i><i style="background:var(--or)"></i><i style="background:var(--vi)"></i><i style="background:var(--cy)"></i></div></aside>
+  <div class="center">
+   <div class="seg roles" role="group" aria-label="${T('معاينة الأدوار','Preview roles')}">
+    <button data-role="driver" aria-pressed="${S.role==='driver'}">${T('السائق','Driver')}</button>
+    <button data-role="fleet" aria-pressed="${S.role==='fleet'}">${T('مدير الأسطول','Fleet manager')}</button>
+    <button data-role="station" aria-pressed="${S.role==='station'}">${T('العامل','Attendant')}</button></div>
+   <div class="phone" id="phone" data-r="${S.role}"><div class="screen" id="screen"></div><nav class="dock" id="nav"></nav></div>
+  </div>
+  <aside class="side"><h3>${T('جرّب هذا المسار','Try this flow')}</h3><ol>
+   <li><b>${T('السائق:','Driver:')}</b> ${T('من «طلباتي» قدّم طلب زيادة الحد.','submit a limit increase from Requests.')}</li>
+   <li><b>${T('مدير الأسطول:','Fleet manager:')}</b> ${T('اعتمد الطلب من «الطلبات» وعدّل المبلغ إن لزم.','approve it in Requests, adjusting the amount if needed.')}</li>
+   <li><b>${T('السائق:','Driver:')}</b> ${T('لاحظ ارتفاع الحد ضمن ميزانية الفئة.','see the higher limit within the tier budget.')}</li>
+   <li><b>${T('لوحة الأسطول:','Fleet web admin:')}</b> ${T('من «الفئات والميزانيات» اربط المركبات بالفئات وتابع المصروف.','link vehicles to tiers in Tiers & budgets and track spending.')}</li></ol>
+   <p class="hint" style="margin-top:14px">${T('أزرار الأدوار أعلى الهاتف للمعاينة فقط؛ لا يستطيع السائق تبديل دوره داخل التطبيق.','The role buttons above the phone are for preview only; a driver cannot switch roles inside the app.')}</p></aside>
+ </div>`;
+}
+function render(){
+ const H=document.documentElement;H.lang=S.lang;H.dir=S.lang==='ar'?'rtl':'ltr';
+ $('#topbar').innerHTML=`<span class="brand"><span class="mark">${ic('pump',18)}</span>${T('بترو','Petro')}<span class="muted" style="font-size:13px;font-weight:500;font-family:var(--body)">PetroFleet · ${T('السودان','Sudan')}</span></span>
+  ${S.mode==='web'?`<span class="sync"><span class="dot pulse"></span>${T('متزامن مع تطبيقات الجوال','Synced with mobile apps')}</span>`:''}
+  <div class="seg" role="group" aria-label="${T('طريقة العرض','View')}"><button data-act="mode:app" aria-pressed="${S.mode==='app'}">${ic('phone',15)} ${T('تطبيقات الجوال','Mobile apps')}</button><button data-act="mode:web" aria-pressed="${S.mode==='web'}">${ic('dash',15)} ${T('لوحة التحكم','Web admin')}</button></div>
+  <button class="lang" data-act="lang" lang="${S.lang==='ar'?'en':'ar'}">${S.lang==='ar'?'English':'العربية'}</button>`;
+ const app=$('#app');
+ if(S.mode==='web'){app.innerHTML=webShell()+(S.modal?modalHTML():'')}
+ else{
+  const prev=$('#screen'),keep=prev&&prev.dataset.view===S.role+S.tab[S.role]?prev.scrollTop:0;
+  app.innerHTML=appShell();
+  const r=S.role,t=S.tab[r],sc=$('#screen');
+  sc.innerHTML=VIEWS[r][t]();sc.dataset.view=r+t;sc.scrollTop=keep;
+  const badge=k=>{if(r==='fleet'&&k==='requests'){const n=pendingReqs().length;return n?`<span class="nbadge">${n}</span>`:''}if(r==='driver'&&k==='requests'){const n=myReqs().filter(x=>x.status==='pending').length;return n?`<span class="nbadge">${n}</span>`:''}return ''};
+  $('#nav').innerHTML=NAVS[r]().map(([k,l,i])=>k==='QR'?`<button class="qr" data-act="pay" aria-label="${l}"><span class="c">${ic(i)}</span>${l}</button>`:`<button data-act="tab:${k}" aria-current="${k===t}">${badge(k)}${ic(i)}${l}</button>`).join('');
+  if(S.sheet){const bg=document.createElement('div');bg.className='sheet-bg';bg.dataset.act='bgclose';
+   bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${S.sheet==='pay'?paySheet():reqSheet()}</div>`;$('#phone').appendChild(bg)}
+  drawQR();
+ }
+ document.querySelectorAll('.toast').forEach(e=>e.remove());
+ if(S.toast){const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=S.toast;document.body.appendChild(d)}
+}
+
+/* ---------- events ---------- */
+function logSec(c,t,d,ref){S.secLog.unshift({c,t,d,ago:W('الآن','Just now'),ref})}
+function doScan(kind){
+ if(kind==='qr'){
+  const d=me(),v=myVeh();
+  if(!v){toast(T('لا توجد مركبة مخصصة لهذا السائق','No vehicle is assigned to this driver'));return}
+  if(odoLocked()&&d.active&&v.active){toast(T('تصريح السائق غير مفعّل: لم تُسجَّل قراءة العدّاد بعد.','Driver pass inactive: odometer not recorded yet.'));return}
+  if(S.rules.network&&!S.network.includes(MY)){toast(T('المحطة خارج شبكة الشركة','This station is not in the company network'));return}
+  S.scan={src:'qr',fid:v.id,token:S.qr.token,mode:'sar',sar:200000,lit:40,pump:null};
+  if(!d.active)logSec('rd',W('محاولة تعبئة من سائق موقوف','Fueling attempt by a suspended driver'),W(`حاول ${d.name.ar} التعبئة في ${stn(MY).name.ar} أثناء إيقاف حسابه، فمُنعت العملية.`,`${d.name.en} attempted to fuel at ${stn(MY).name.en} while suspended. The attempt was blocked.`),d.code);
+  else if(!v.active)logSec('rd',W('محاولة تعبئة لمركبة موقوفة','Fueling attempt on a suspended vehicle'),W(`مُسح رمز المركبة الموقوفة ${v.plate[0]} في ${stn(MY).name.ar}، فمُنعت العملية.`,`The code for suspended vehicle ${v.plate[0]} ${v.plate[1]} was scanned at ${stn(MY).name.en}. The attempt was blocked.`),v.plate.slice(0,2).join('-'));
+  toast(T('تم التعرّف على السائق من رمز التصريح','Driver identified from the pass code'));return;
+ }
+ const f=fv('f6')||S.fleet[0];S.scan={src:'rfid',fid:f.id,mode:'lit',sar:200000,lit:60,pump:null};
+ toast(T(`تمت قراءة الشريحة: ${f.name.ar}`,`Tag read: ${f.name.en}`));
+}
+function doDispense(){
+ const I=scanInfo(),sc=S.scan,amt=sc.mode==='lit'?Math.round(sc.lit*PRICES[I.fuel]):sc.sar,hm=nowHM();
+ S.tx.unshift({id:'T-'+(90413+S.tx.length),who:I.src==='qr'?'driver':'other',fleetId:I.f.id,station:MY,pump:sc.pump,fuel:I.fuel,amount:amt,status:'fueling',when:W('الآن '+hm,'Now '+hm),src:I.src});
+ charge(I.f.id,amt);const p=sc.pump;S.scan=null;toast(T(`بدأ الصرف من المسدس ${p}`,`Nozzle ${p} is dispensing`));
+}
+document.addEventListener('click',e=>{
+ const el=e.target.closest('[data-act],[data-role]');if(!el)return;
+ if(el.dataset.role){S.role=el.dataset.role;S.sheet=null;S.hubBack=null;if(S.tab[S.role]==='hub'||S.tab[S.role]==='vehicle')S.tab[S.role]=Object.keys(VIEWS[S.role])[0];render();return}
+ const parts=el.dataset.act.split(':'),a=parts[0],v=parts.slice(1).join(':');
+ if(a==='bgclose'||a==='mbg'){if(e.target===el){S.sheet=null;S.modal=null;render()}return}
+ const F=S.flow;
+ switch(a){
+  case 'lang':S.lang=S.lang==='ar'?'en':'ar';try{localStorage.setItem('petro-lang',S.lang)}catch(_){}break;
+  case 'mode':S.mode=v;S.sheet=null;S.modal=null;window.scrollTo(0,0);break;
+  case 'portal':S.portal=v;break;
+  case 'wtab':S.wtab[S.portal]=v;window.scrollTo(0,0);break;
+  case 'modal':{const i=v.indexOf(':');S.modal={type:v.slice(0,i),id:v.slice(i+1)};break}
+  case 'mclose':S.modal=null;break;
+  case 'tab':S.tab[S.role]=v;S.hubBack=null;break;
+  case 'hub':if(S.tab[S.role]!=='hub'){S.hubBack=S.tab[S.role];S.tab[S.role]='hub'}break;
+  case 'hubclose':S.tab[S.role]=S.hubBack||Object.keys(VIEWS[S.role])[0];S.hubBack=null;break;
+  case 'switch':if(S.role!=='fleet')return;S.role=v;S.tab[v]=Object.keys(VIEWS[v])[0];S.hubBack=null;toast(T('وضع المعاينة','Preview mode'));return;
+  case 'goreq':if(S.mode==='web'){S.portal='fleet';S.wtab.fleet='requests'}else S.tab.fleet='requests';S.reqFilter='pending';break;
+  case 'regen':newToken();break;
+  case 'snap':toast(T('تم إرفاق صورة لوحة العدّادات','Dashboard photo attached'));return;
+  case 'odo':{const val=(($('#odo')||{}).value||'').trim();if(!/^\d{3,7}$/.test(val)){toast(T('أدخل قراءة عدّاد صحيحة بالأرقام','Enter a valid odometer reading in digits'));return}S.odo={val,done:true};newToken();toast(T('تم حفظ القراءة وتفعيل التصريح','Reading saved and pass activated'));return}
+  case 'pay':if(S.role==='driver')openPay();return;
+  case 'newreq':openReq(v);return;
+  case 'rqtype':S.rq.type=v;S.rq.reason=v==='activate'?'review':'trip';break;
+  case 'rqamt':S.rq.amount=+v;break;
+  case 'rqsend':sendReq();return;
+  case 'rqok':decide(v,true);return;
+  case 'rqno':decide(v,false);return;
+  case 'rqf':S.reqFilter=v;break;
+  case 'toast':toast(v);return;
+  case 'reactivate':fv(v).active=true;toast(T('تمت إعادة تفعيل المركبة','Vehicle reactivated'));return;
+  case 'denable':drv(v).active=true;toast(T('تمت إعادة تفعيل السائق','Driver reactivated'));return;
+  case 'raise':{const f=fv(v);f.extra=(f.extra||0)+300000;toast(T(`تمت إضافة 300,000 ج.س إلى حد هذا الشهر`,`SDG 300,000 added to this month's limit`));return}
+  case 'st':F.station=v;F.pump=null;break;
+  case 'pp':F.pump=+v;break;
+  case 'fu':F.fuel=v;F.pump=null;break;
+  case 'am':{const {cap}=capFor(myVeh());F.amount=v==='full'?Math.max(10000,Math.floor(Math.min(cap,400000)/1000)*1000):+v;break}
+  case 'next':F.step++;break;
+  case 'back':F.step--;break;
+  case 'confirm':confirmPay();return;
+  case 'close':{const done=S.sheet==='pay'&&F&&F.step===5;S.sheet=null;if(done){toast(T('حُفظ الإيصال في السجل','Receipt saved to History'));return}break}
+  case 'scanqr':doScan('qr');return;
+  case 'scanrfid':doScan('rfid');return;
+  case 'sclear':S.scan=null;break;
+  case 'spump':S.scan.pump=+v;break;
+  case 'smode':S.scan.mode=v;break;
+  case 'sval':if(S.scan.mode==='lit')S.scan.lit=+v;else S.scan.sar=+v;break;
+  case 'dispense':doDispense();return;
+  case 'start':{const t=S.tx.find(x=>x.id===v);t.status='fueling';toast(T(`تم تشغيل المضخة ${t.pump}`,`Pump ${t.pump} started`));return}
+  case 'finish':{const t=S.tx.find(x=>x.id===v),hm=nowHM();t.status='done';t.when=W('اليوم '+hm,'Today '+hm);toast(T(`اكتملت العملية · إيصال ${t.id}`,`Completed · receipt ${t.id}`));return}
+  case 'key':{
+   if(v==='C')S.keyCode='';
+   else if(v==='OK'){const t=S.tx.find(x=>x.code===S.keyCode&&x.status==='auth'&&x.station===MY);S.keyCode='';
+    if(t){t.status='fueling';toast(T(`الرمز صحيح · بدأ التشغيل على المضخة ${t.pump}`,`Code accepted · pump ${t.pump} started`));return}
+    toast(T('لا توجد عملية مفتوحة بهذا الرمز. اطلب من السائق التحقق من التطبيق.','No open authorization matches this code. Ask the driver to check the app.'));return}
+   else if(S.keyCode.length<4)S.keyCode+=v;
+   break}
+ }
+ render();
+});
+document.addEventListener('input',e=>{
+ const el=e.target;
+ if(el.id==='amt'){const F=S.flow;F.amount=+el.value||0;
+  const {cap,why}=capFor(myVeh()),over=F.amount>cap;
+  $('#calc').innerHTML=`≈ <span class="num">${liters(F.amount,F.fuel).toFixed(1)}</span> ${T('لتر','litres')}`;
+  const m=$('#capmsg');m.textContent=capMsg(over,cap,why);m.style.color=over?'var(--rd)':'var(--muted)';
+  $('#amtnext').disabled=over||F.amount<10000;}
+ if(el.id==='rqamt'){S.rq.amount=+el.value||0;const b=$('#rqsend'),dup=myReqs().some(r=>r.status==='pending'&&r.type===S.rq.type);if(b)b.disabled=dup||!(S.rq.amount>=10000&&S.rq.amount<=2000000)}
+ if(el.id==='rqnote')S.rq.note=el.value;
+ if(el.id==='odo')S.odo.val=el.value;
+ if(el.id==='txq'){S.txFilter.q=el.value;$('#txbody').innerHTML=filteredFleetTx()}
+});
+document.addEventListener('change',e=>{
+ const el=e.target;
+ if(el.closest('#mform'))return;
+ if(el.id==='rqreason'){S.rq.reason=el.value;return}
+ if(el.dataset.wtier){const f=fv(el.dataset.wtier);f.tier=el.value||null;const t=tierOf(f);toast(t?T(`نُقلت المركبة إلى فئة ${t.name.ar} · الحد ${curTxt(limOf(f))}`,`Vehicle moved to ${t.name.en} · limit ${curTxt(limOf(f))}`):T('أُزيلت المركبة من الفئة','Vehicle removed from its tier'));return}
+ if(el.dataset.active){const f=fv(el.dataset.active);f.active=el.checked;toast(f.active?T('تمت إعادة تفعيل المركبة','Vehicle reactivated'):T('تم إيقاف المركبة ولن يتمكن سائقها من التعبئة','Vehicle suspended; its driver can no longer fuel'));return}
+ if(el.dataset.denable){const d=drv(el.dataset.denable);d.active=el.checked;toast(d.active?T(`تمت إعادة تفعيل ${d.name.ar}`,`${d.name.en} reactivated`):T(`تم إيقاف ${d.name.ar} وإقفال تصريح الوقود`,`${d.name.en} suspended and fuel pass locked`));return}
+ if(el.dataset.son){const s=S.staff.find(x=>x.id===el.dataset.son);s.on=el.checked;toast(s.on?T('تم تفعيل حساب الموظف','Staff account activated'):T('تم إيقاف حساب الموظف','Staff account suspended'));return}
+ if(el.dataset.rule){S.rules[el.dataset.rule]=el.checked;toast(T('تم تحديث القاعدة في جميع التطبيقات','Rule updated across all apps'));return}
+ if(el.hasAttribute('data-maxamt')){S.rules.maxFillAmt=Math.max(10000,+el.value||400000);toast(T(`الحد الأقصى للتعبئة الواحدة ${curTxt(S.rules.maxFillAmt)}`,`Maximum per fill-up set to ${curTxt(S.rules.maxFillAmt)}`));return}
+ if(el.dataset.pump){const p=pumpOf(+el.dataset.pump);p.on=el.checked;toast(p.on?T(`المضخة ${p.n} تعمل الآن`,`Pump ${p.n} is back online`):T(`تم إيقاف المضخة ${p.n}`,`Pump ${p.n} taken offline`));return}
+ if(el.dataset.vat){if(el.dataset.vat==='on'){S.tax.on=el.checked;toast(S.tax.on?T(`تم تفعيل الضريبة بنسبة ${S.tax.rate}%`,`VAT turned on at ${S.tax.rate}%`):T('تم إيقاف الضريبة','VAT turned off'))}else{const r=+el.value;if(el.value===''||!(r>=0&&r<=100)){toast(T('أدخل نسبة بين 0 و 100','Enter a rate between 0 and 100'));return}S.tax.rate=r;toast(T(`نسبة الضريبة ${r}%`,`VAT rate set to ${r}%`))}return}
+ if(el.dataset.set){const k=el.dataset.set,val=el.value.trim();if(!val){toast(T('لا يمكن ترك هذا الحقل فارغاً','This field cannot be empty'));return}
+  if(k.startsWith('org.'))S.org[k.slice(4)]=val;else{const s=stn(MY),path=k.slice(3).split('.');if(path.length===2)s[path[0]][path[1]]=val;else s[path[0]]=val}
+  toast(T('تم الحفظ','Saved'));return}
+ if(el.id==='txf'){S.txFilter.fuel=el.value;$('#txbody').innerHTML=filteredFleetTx()}
+});
+document.addEventListener('submit',e=>{if(e.target.id==='mform'){e.preventDefault();saveModal()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(S.modal||S.sheet)){S.modal=null;S.sheet=null;render()}});
+render();
+</script>
+
+</body>
+</html>
