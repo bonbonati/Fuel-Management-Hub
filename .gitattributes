@@ -1,0 +1,7 @@
+# Keep LF line endings in the working tree on every OS. Shell scripts mounted
+# into Linux containers (e.g. the Postgres init script) break with CRLF when
+# Git on Windows converts line endings (core.autocrlf=true).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary

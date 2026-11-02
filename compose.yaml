@@ -8,8 +8,8 @@
 # Other endpoints: Traefik dashboard http://localhost:8090,
 # RabbitMQ console http://localhost:15672 (petro / petro-dev), Postgres localhost:55432.
 #
-# All credentials below are development defaults; override them in a .env file
-# (see .env.example). Demo accounts all use DEMO_PASSWORD (default demo1234).
+# All credentials and host ports below are development defaults; override them
+# in a .env file (see .env.example). Full guide: docs/local-setup.md. Demo accounts all use DEMO_PASSWORD (default demo1234).
 
 name: petro
 
@@ -42,7 +42,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql
       - ./deploy/k8s/components/infra/init-databases.sh:/docker-entrypoint-initdb.d/10-init-databases.sh:ro
-    ports: ["127.0.0.1:55432:5432"]
+    ports: ["127.0.0.1:${POSTGRES_PORT:-55432}:5432"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 5s
@@ -73,7 +73,7 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-petro-dev}
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
-    ports: ["127.0.0.1:15672:15672"]
+    ports: ["127.0.0.1:${RABBITMQ_UI_PORT:-15672}:15672"]
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -170,8 +170,8 @@ services:
     volumes:
       - ./deploy/compose/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
     ports:
-      - "8080:80"
-      - "127.0.0.1:8090:8080"
+      - "${GATEWAY_PORT:-8080}:80"
+      - "127.0.0.1:${TRAEFIK_DASHBOARD_PORT:-8090}:8080"
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 10s
