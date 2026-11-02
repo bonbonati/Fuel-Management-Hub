@@ -1,0 +1,14 @@
+{
+  "name": "petro-frontend",
+  "private": true,
+  "description": "PetroFleet Sudan frontends: web admin (React) and mobile app (React + Capacitor), sharing @petro/shared.",
+  "packageManager": "pnpm@12.16.1",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "dev:web": "pnpm --filter @petro/web dev",
+    "dev:mobile": "pnpm --filter @petro/mobile dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
