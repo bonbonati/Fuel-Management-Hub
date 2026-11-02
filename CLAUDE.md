@@ -1,6 +1,8 @@
 # CLAUDE.md
 
 Guidance for Claude Code (and other contributors/agents) working in this repository.
+**Start by reading `docs/status.md`** (current state, open tasks, decisions) and update it
+at the end of your session.
 
 ## Project
 
@@ -12,10 +14,16 @@ web admin, containerized, deployable to Kubernetes. The original single-file pro
 **Mobile app is a planned stage** — `frontend/apps/mobile/README.md` has the decided stack
 (React + Capacitor reusing `@petro/shared`). Don't build it unless asked.
 
-## Branches
+## Branches, CI and CD
 
-`dev` is the development branch; `main` is production (CI publishes images from `main`).
-Work on `dev` (or feature branches into `dev`). Don't commit to `main` directly.
+- `dev` is the development branch; `main` is production. Work on `dev` (or feature branches
+  into `dev`); promote by merging `dev` → `main`.
+- `ci.yml` (pushes to `dev`, PRs): Go + TS tests, web build, overlay validation, compose e2e.
+- `cd.yml` (pushes to `main`): builds the six images, pushes `$REGISTRY/<service>:<commit-sha>`
+  (repo variable `REGISTRY`, secrets `REGISTRY_USERNAME`/`REGISTRY_PASSWORD`), then rewrites the
+  `images:` block of `deploy/k8s/overlays/prod/kustomization.yaml` and commits it to `main`
+  (`[skip ci]`). Argo CD (`deploy/argocd/application.yaml`) syncs that overlay. Never hand-edit
+  those image tags.
 
 ## Run & test
 
@@ -98,4 +106,4 @@ Conventions:
   `overlays/dev` (k3s, demo on, generated dev secrets) and `overlays/prod` (registry images,
   HPAs, TLS, external `petro-secrets`, see `secrets.example.env`).
 - When adding a service: Dockerfile build-arg, compose service + Traefik route, k8s base
-  manifest + Ingress path, CI publish matrix, and docs.
+  manifest + Ingress path, the `cd.yml` build matrix and tag-bump loop, and docs.

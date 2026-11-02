@@ -16,6 +16,7 @@ company's prepaid wallet. Bilingual (Arabic RTL by default, English), amounts in
 | Web admin (fleet + station portals) | ✅ implemented, unit tested |
 | Local environment (docker compose) | ✅ one command |
 | Kubernetes (kustomize: base, infra component, dev/prod overlays) | ✅ manifests, schema-validated in CI |
+| CI/CD (GitHub Actions → registry → Argo CD) | ✅ workflows; registry + Argo CD to be configured |
 | Mobile app (driver / fleet manager / attendant) | 🕓 planned — see `frontend/apps/mobile/README.md` |
 
 The original single-file clickable prototype is kept in `prototype/index.html` as the UX reference.
@@ -51,7 +52,8 @@ frontend/           pnpm workspace
 deploy/
   compose/          gateway (Traefik) routing for docker compose
   k8s/              kustomize: base/, components/infra/, overlays/{dev,prod}
-docs/               architecture and decisions
+  argocd/           Argo CD Application (production, follows main)
+docs/               status.md (current state / handoff), architecture.md
 prototype/          original HTML prototype
 compose.yaml        local environment
 Makefile            make help
@@ -67,9 +69,12 @@ make e2e-live        # web UI smoke test against the running stack
 make k8s-validate    # render + schema-validate the k8s overlays
 ```
 
-## Branches
+## Branches and delivery
 
-- `dev` — integration branch; all work lands here via PRs.
-- `main` — production. CI publishes images to GHCR on every push to `main`.
+- `dev` — development branch. CI (`.github/workflows/ci.yml`) runs all tests, the web build,
+  k8s validation and the compose e2e suite.
+- `main` — production. CD (`.github/workflows/cd.yml`) builds and pushes the images to
+  `$REGISTRY/<service>:<commit-sha>`, pins those tags in `deploy/k8s/overlays/prod`, and commits;
+  Argo CD (`deploy/argocd/application.yaml`) deploys the change. Setup steps: [docs/status.md](docs/status.md).
 
 See [docs/architecture.md](docs/architecture.md) for the design and [CLAUDE.md](CLAUDE.md) for contributor conventions.

@@ -1,0 +1,25 @@
+# Argo CD Application for production (apply once in the cluster running Argo CD):
+#   kubectl apply -n argocd -f deploy/argocd/application.yaml
+# It follows deploy/k8s/overlays/prod on main; the CD workflow bumps the image
+# tags there after each merge, which Argo CD then syncs.
+# Before the first sync: create the "petro-secrets" Secret in namespace petro
+# (keys: deploy/k8s/overlays/prod/secrets.example.env) and make sure Postgres,
+# RabbitMQ and Valkey are reachable (managed services, or add
+# ../../components/infra to the prod overlay for self-hosted ones).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: petro
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/bonbonati/Fuel-Management-Hub.git
+    targetRevision: main
+    path: deploy/k8s/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: petro
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]
