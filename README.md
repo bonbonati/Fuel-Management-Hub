@@ -37,6 +37,9 @@ Sign in with the one-tap demo buttons, or with a username below (password `demo1
 | `D-3071` | Driver (Abdurahman Hassan) | mobile app (planned) / API |
 | `ATT-09` | Pump attendant | mobile app (planned) / API |
 
+**Full guide for running it on your machine (Docker Desktop, ports, troubleshooting):
+[docs/local-setup.md](docs/local-setup.md).**
+
 Other local endpoints: Traefik dashboard http://localhost:8090 · RabbitMQ console
 http://localhost:15672 (`petro` / `petro-dev`) · Postgres `localhost:55432`.
 
@@ -53,7 +56,7 @@ deploy/
   compose/          gateway (Traefik) routing for docker compose
   k8s/              kustomize: base/, components/infra/, overlays/{dev,prod}
   argocd/           Argo CD Application (production, follows main)
-docs/               status.md (current state / handoff), architecture.md
+docs/               local-setup.md (run locally), status.md (current state / handoff), architecture.md
 prototype/          original HTML prototype
 compose.yaml        local environment
 Makefile            make help

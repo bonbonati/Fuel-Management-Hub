@@ -11,7 +11,7 @@ The single-file HTML prototype (`prototype/index.html`) has been re-platformed:
 |---|---|---|
 | Backend: auth, fleet, station, payment, fueling (Go 1.27) | ✅ done | Unit tests per layer + `backend/e2e` suite (passes against compose) |
 | Web admin: fleet + station portals (React 19, Vite 8) | ✅ done | Unit tests + opt-in live smoke test (`make e2e-live`) |
-| Local environment (`compose.yaml`, Traefik gateway :8080) | ✅ done | Seeds the prototype's demo data; demo password `demo1234` |
+| Local environment (`compose.yaml`, Traefik gateway :8080) | ✅ done | Runs on Docker Desktop from a fresh clone (verified by CI e2e on a clean runner); guide: `docs/local-setup.md` |
 | Kubernetes (kustomize base / infra component / dev & prod overlays) | ✅ manifests | Schema-validated (`make k8s-validate`); **not yet deployed to a real cluster** |
 | CI (`.github/workflows/ci.yml`) | ✅ | dev pushes + PRs: tests, web build, overlay validation, compose e2e |
 | CD (`.github/workflows/cd.yml`) | ✅ waiting for config | On main: build + push images `$REGISTRY/<svc>:<sha>`, pin tags in `deploy/k8s/overlays/prod`, commit; Argo CD syncs |
@@ -45,4 +45,6 @@ The single-file HTML prototype (`prototype/index.html`) has been re-platformed:
   to RabbitMQ, Valkey for ephemeral state; Kafka and S3 deferred (see `architecture.md`).
 - 2026-11-02 — Web admin in React; mobile deferred to a later stage (Capacitor chosen).
 - 2026-11-02 — Branching: `dev` for development, `main` = production (GitOps via Argo CD).
-- 2026-11-02 — Local verification uses docker compose only; don't start k3s on the dev machine.
+- 2026-11-02 — Local verification uses docker compose only; don't start k3s on the dev machine, and avoid heavy
+  rebuilds there (e.g. `--no-cache`, fresh-clone builds) — rely on CI for clean-environment checks.
+- 2026-11-02 — Host ports configurable via `.env`; `.gitattributes` forces LF (Windows checkouts).
