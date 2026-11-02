@@ -1,0 +1,85 @@
+# auth service — Identity: sign-in, EdDSA access tokens, JWKS.
+# Stateless; scale horizontally. Runs migrations on start (advisory-locked).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  labels: { app.kubernetes.io/name: auth, app.kubernetes.io/component: api }
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: { app.kubernetes.io/name: auth }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: auth, app.kubernetes.io/component: api }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: /metrics
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: auth
+          image: petro/auth
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: http, containerPort: 8080 }
+          env:
+            - { name: LOG_LEVEL, valueFrom: { configMapKeyRef: { name: petro-config, key: LOG_LEVEL } } }
+            - { name: SEED_DEMO_DATA, valueFrom: { configMapKeyRef: { name: petro-config, key: SEED_DEMO_DATA } } }
+            - { name: CORS_ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: petro-config, key: CORS_ALLOWED_ORIGINS } } }
+            - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: petro-secrets, key: auth-database-url } } }
+            - { name: VALKEY_ADDR, valueFrom: { configMapKeyRef: { name: petro-config, key: VALKEY_ADDR } } }
+            - { name: VALKEY_PASSWORD, valueFrom: { secretKeyRef: { name: petro-secrets, key: valkey-password } } }
+            - { name: DEMO_MODE, valueFrom: { configMapKeyRef: { name: petro-config, key: DEMO_MODE } } }
+            - { name: DEMO_PASSWORD, valueFrom: { secretKeyRef: { name: petro-secrets, key: demo-password } } }
+            - { name: ACCESS_TOKEN_TTL, valueFrom: { configMapKeyRef: { name: petro-config, key: ACCESS_TOKEN_TTL } } }
+            - { name: AUTH_SIGNING_KEY, valueFrom: { secretKeyRef: { name: petro-secrets, key: auth-signing-key, optional: true } } }
+            - { name: AUTH_ALLOW_EPHEMERAL_KEY, valueFrom: { configMapKeyRef: { name: petro-config, key: AUTH_ALLOW_EPHEMERAL_KEY } } }
+          startupProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 2
+            failureThreshold: 60
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests: { cpu: 50m, memory: 32Mi }
+            limits: { memory: 128Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  labels: { app.kubernetes.io/name: auth }
+spec:
+  selector: { app.kubernetes.io/name: auth }
+  ports:
+    - { name: http, port: 8080, targetPort: http }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: auth
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: auth }

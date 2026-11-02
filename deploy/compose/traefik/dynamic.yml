@@ -1,0 +1,46 @@
+# Gateway routing table (Traefik file provider) for the local environment.
+# Kubernetes uses the equivalent Ingress in deploy/k8s/base/ingress.yaml.
+#
+# Only public routes are exposed. /internal/* service-to-service endpoints are
+# deliberately not routed, so they are unreachable from outside.
+http:
+  routers:
+    auth:
+      rule: "PathPrefix(`/api/v1/auth`)"
+      service: auth
+      middlewares: [security-headers]
+    fleet:
+      rule: "PathPrefix(`/api/v1/fleet`)"
+      service: fleet
+      middlewares: [security-headers]
+    station:
+      rule: "PathPrefix(`/api/v1/stations`)"
+      service: station
+      middlewares: [security-headers]
+    payment:
+      rule: "PathPrefix(`/api/v1/payments`)"
+      service: payment
+      middlewares: [security-headers]
+    fueling:
+      rule: "PathPrefix(`/api/v1/fueling`)"
+      service: fueling
+      middlewares: [security-headers]
+    web:
+      rule: "PathPrefix(`/`)"
+      service: web
+      middlewares: [security-headers]
+
+  middlewares:
+    security-headers:
+      headers:
+        contentTypeNosniff: true
+        frameDeny: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+
+  services:
+    auth:    { loadBalancer: { servers: [{ url: "http://auth:8080" }], healthCheck: { path: /healthz, interval: 10s } } }
+    fleet:   { loadBalancer: { servers: [{ url: "http://fleet:8080" }], healthCheck: { path: /healthz, interval: 10s } } }
+    station: { loadBalancer: { servers: [{ url: "http://station:8080" }], healthCheck: { path: /healthz, interval: 10s } } }
+    payment: { loadBalancer: { servers: [{ url: "http://payment:8080" }], healthCheck: { path: /healthz, interval: 10s } } }
+    fueling: { loadBalancer: { servers: [{ url: "http://fueling:8080" }], healthCheck: { path: /healthz, interval: 10s } } }
+    web:     { loadBalancer: { servers: [{ url: "http://web:8080" }] } }

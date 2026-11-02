@@ -1,0 +1,57 @@
+# Production. Differences from dev:
+#  - no in-cluster infra: Postgres / RabbitMQ / Valkey are managed services
+#    reached through the URLs in the "petro-secrets" Secret;
+#  - the Secret is NOT generated here. Create it from a secret manager
+#    (External Secrets Operator, Sealed Secrets, SOPS…) with the keys in
+#    secrets.example.env — including a persistent AUTH signing key;
+#  - demo mode and demo seeding off (base defaults), registry images with an
+#    immutable tag (set by CI: kustomize edit set image …),
+#  - 2+ replicas with HPAs, larger resources, TLS ingress on a real host.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: petro
+
+resources:
+  - namespace.yaml
+  - ../../base
+  - hpa.yaml
+
+images:
+  - { name: petro/auth, newName: ghcr.io/bonbonati/fuel-management-hub/auth, newTag: latest }
+  - { name: petro/fleet, newName: ghcr.io/bonbonati/fuel-management-hub/fleet, newTag: latest }
+  - { name: petro/station, newName: ghcr.io/bonbonati/fuel-management-hub/station, newTag: latest }
+  - { name: petro/payment, newName: ghcr.io/bonbonati/fuel-management-hub/payment, newTag: latest }
+  - { name: petro/fueling, newName: ghcr.io/bonbonati/fuel-management-hub/fueling, newTag: latest }
+  - { name: petro/web, newName: ghcr.io/bonbonati/fuel-management-hub/web, newTag: latest }
+
+patches:
+  # Two replicas minimum (the HPA scales further) and production resources.
+  - target: { kind: Deployment, labelSelector: app.kubernetes.io/component=api }
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value: { requests: { cpu: 200m, memory: 64Mi }, limits: { memory: 256Mi } }
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Always
+  - target: { kind: Deployment, name: web }
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+  # Public host and TLS (cert-manager issuer name is an example).
+  - target: { kind: Ingress, name: petro }
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value: { cert-manager.io/cluster-issuer: letsencrypt }
+      - op: add
+        path: /spec/tls
+        value: [{ hosts: [petro.example.com], secretName: petro-tls }]
+      - op: add
+        path: /spec/rules/0/host
+        value: petro.example.com

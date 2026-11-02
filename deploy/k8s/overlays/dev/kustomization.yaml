@@ -1,0 +1,48 @@
+# Local development on k3s (or any single-node cluster):
+#   make k8s-dev          # builds images, imports them into k3s, applies this overlay
+#   open http://localhost  (k3s Traefik on :80)
+# Self-hosted infra, demo mode with seeded data, one replica each, and
+# development-only credentials generated below.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: petro-dev
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+components:
+  - ../../components/infra
+
+configMapGenerator:
+  - name: petro-config
+    behavior: merge
+    literals:
+      - DEMO_MODE=true
+      - SEED_DEMO_DATA=true
+      - LOG_LEVEL=debug
+      # Single auth replica in dev, so a throwaway signing key is fine.
+      - AUTH_ALLOW_EPHEMERAL_KEY=true
+
+# DEVELOPMENT ONLY credentials. Never reuse them anywhere else.
+secretGenerator:
+  - name: petro-secrets
+    literals:
+      - postgres-password=postgres-dev
+      - auth-db-password=auth-dev
+      - fleet-db-password=fleet-dev
+      - station-db-password=station-dev
+      - payment-db-password=payment-dev
+      - fueling-db-password=fueling-dev
+      - auth-database-url=postgres://auth:auth-dev@postgres:5432/auth?sslmode=disable
+      - fleet-database-url=postgres://fleet:fleet-dev@postgres:5432/fleet?sslmode=disable
+      - station-database-url=postgres://station:station-dev@postgres:5432/station?sslmode=disable
+      - payment-database-url=postgres://payment:payment-dev@postgres:5432/payment?sslmode=disable
+      - fueling-database-url=postgres://fueling:fueling-dev@postgres:5432/fueling?sslmode=disable
+      - valkey-password=valkey-dev
+      - rabbitmq-user=petro
+      - rabbitmq-password=petro-dev
+      - amqp-url=amqp://petro:petro-dev@rabbitmq:5672/
+      - demo-password=demo1234
+      - auth-signing-key=

@@ -1,0 +1,16 @@
+# Self-hosted infrastructure for environments without managed services
+# (local k3s, staging). Production should prefer managed Postgres (or
+# CloudNativePG), a managed/HA RabbitMQ (RabbitMQ Cluster Operator) and a
+# managed Valkey/Redis-compatible cache, and drop this component.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - postgres.yaml
+  - valkey.yaml
+  - rabbitmq.yaml
+
+configMapGenerator:
+  - name: postgres-init
+    files:
+      - init-databases.sh

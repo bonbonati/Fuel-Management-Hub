@@ -1,0 +1,56 @@
+# Single-node RabbitMQ 4 for domain events. The node name follows the pod
+# hostname (rabbitmq-0), which a StatefulSet keeps stable across restarts.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  labels: { app.kubernetes.io/name: rabbitmq, app.kubernetes.io/component: broker }
+spec:
+  serviceName: rabbitmq
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: rabbitmq }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: rabbitmq, app.kubernetes.io/component: broker }
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:4.4.0-management-alpine
+          env:
+            - { name: RABBITMQ_DEFAULT_USER, valueFrom: { secretKeyRef: { name: petro-secrets, key: rabbitmq-user } } }
+            - { name: RABBITMQ_DEFAULT_PASS, valueFrom: { secretKeyRef: { name: petro-secrets, key: rabbitmq-password } } }
+          ports:
+            - { name: amqp, containerPort: 5672 }
+            - { name: management, containerPort: 15672 }
+          startupProbe:
+            exec: { command: [rabbitmq-diagnostics, -q, ping] }
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            exec: { command: [rabbitmq-diagnostics, -q, ping] }
+            periodSeconds: 15
+            timeoutSeconds: 10
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 1Gi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/rabbitmq }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  labels: { app.kubernetes.io/name: rabbitmq }
+spec:
+  selector: { app.kubernetes.io/name: rabbitmq }
+  ports:
+    - { name: amqp, port: 5672, targetPort: amqp }
+    - { name: management, port: 15672, targetPort: management }

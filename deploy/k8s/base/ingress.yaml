@@ -1,0 +1,19 @@
+# Public routing (equivalent of deploy/compose/traefik/dynamic.yml).
+# Only /api/v1/<service> and the web app are exposed; the services'
+# /internal/v1 endpoints are intentionally unreachable from outside.
+# ingressClassName "traefik" is k3s's built-in controller; prod overrides host/TLS.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: petro
+spec:
+  ingressClassName: traefik
+  rules:
+    - http:
+        paths:
+          - { path: /api/v1/auth,     pathType: Prefix, backend: { service: { name: auth,    port: { name: http } } } }
+          - { path: /api/v1/fleet,    pathType: Prefix, backend: { service: { name: fleet,   port: { name: http } } } }
+          - { path: /api/v1/stations, pathType: Prefix, backend: { service: { name: station, port: { name: http } } } }
+          - { path: /api/v1/payments, pathType: Prefix, backend: { service: { name: payment, port: { name: http } } } }
+          - { path: /api/v1/fueling,  pathType: Prefix, backend: { service: { name: fueling, port: { name: http } } } }
+          - { path: /,                pathType: Prefix, backend: { service: { name: web,     port: { name: http } } } }
